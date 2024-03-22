@@ -15,7 +15,9 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   bool isToken = false;
-  String studentNumber = "";
+  String? studentNumber = "";
+  String? name = "";
+  String? point = "";
 
   @override
   void initState() {
@@ -26,13 +28,14 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _autoLoginCheck() async {
     SharedPreferences pref = await SharedPreferences.getInstance();
-    final String? token = pref.getString('studentNumber');
+    studentNumber = pref.getString('studentNumber');
+    name = pref.getString('name');
+    point = pref.getString('point');
 
-    if (token != null) {
+    if (studentNumber != null && name != null && point != null) {
       isToken = true;
-      studentNumber = token;
       setState(() {});
-      print("Token Completed : $token");
+      print("Token Completed : $studentNumber - $name - $point");
     }
   }
 
@@ -46,6 +49,8 @@ class _SplashScreenState extends State<SplashScreen> {
       nextScreen: isToken
           ? MakeQuestionScreen(
               studentNumber: studentNumber,
+              name: name,
+              point: point,
             )
           : const SignUpScreen(),
     );

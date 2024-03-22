@@ -9,10 +9,14 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class VoteCheckScreen extends StatefulWidget {
-  String studentNumber;
+  String? studentNumber;
+  String? name;
+  String? point;
   VoteCheckScreen({
     super.key,
     required this.studentNumber,
+    required this.name,
+    required this.point,
   });
 
   @override
@@ -44,6 +48,8 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
       MaterialPageRoute(
         builder: (context) => MakeQuestionScreen(
           studentNumber: widget.studentNumber,
+          name: widget.name,
+          point: widget.point,
         ),
       ),
     );
@@ -55,6 +61,8 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
       MaterialPageRoute(
         builder: (context) => LiveSituation(
           studentNumber: widget.studentNumber,
+          name: widget.name,
+          point: widget.point,
         ),
       ),
     );

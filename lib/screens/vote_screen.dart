@@ -1,4 +1,6 @@
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:survey_jys/authentication/sign_up_screen.dart';
 import 'package:survey_jys/constants/gaps.dart';
 import 'package:survey_jys/constants/sizes.dart';
 import 'package:survey_jys/screens/live_situation.dart';
@@ -9,10 +11,14 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MakeQuestionScreen extends StatefulWidget {
-  String studentNumber;
+  String? studentNumber;
+  String? name;
+  String? point;
   MakeQuestionScreen({
     super.key,
     required this.studentNumber,
+    required this.name,
+    required this.point,
   });
 
   @override
@@ -40,12 +46,18 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
 
   TextEditingController tec = TextEditingController();
 
+  bool showUserDetails = false;
+
+  var studentNumber;
+  var name;
+  var point;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    if (widget.studentNumber.isNotEmpty) {
-      tec.text = widget.studentNumber;
+    if (widget.studentNumber != null) {
+      tec.text = widget.studentNumber.toString();
     }
   }
 
@@ -111,6 +123,8 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
       MaterialPageRoute(
         builder: (context) => VoteCheckScreen(
           studentNumber: widget.studentNumber,
+          name: widget.name,
+          point: widget.point,
         ),
       ),
     );
@@ -122,6 +136,8 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
       MaterialPageRoute(
         builder: (context) => LiveSituation(
           studentNumber: widget.studentNumber,
+          name: widget.name,
+          point: widget.point,
         ),
       ),
     );
@@ -172,6 +188,71 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
     }
   }
 
+  Widget _buildDrawerList() {
+    return ListView(children: [
+      ListTile(
+        leading: const FaIcon(FontAwesomeIcons.checkToSlot),
+        iconColor: Theme.of(context).primaryColor,
+        focusColor: Theme.of(context).primaryColor,
+        title: const Text('투표하기'),
+        onTap: () {},
+        trailing: const Icon(Icons.navigate_next),
+      ),
+      ListTile(
+        leading: const FaIcon(FontAwesomeIcons.listCheck),
+        iconColor: Theme.of(context).primaryColor,
+        focusColor: Theme.of(context).primaryColor,
+        title: const Text('투표 확인'),
+        onTap: onVoteCheckTap,
+        trailing: const Icon(Icons.navigate_next),
+      ),
+      ListTile(
+        leading: const FaIcon(FontAwesomeIcons.satellite),
+        iconColor: Theme.of(context).primaryColor,
+        focusColor: Theme.of(context).primaryColor,
+        title: const Text('실시간 현황'),
+        onTap: onLiveTap,
+        trailing: const Icon(Icons.navigate_next),
+      ),
+    ]);
+  }
+
+  Widget _buildUserDetail() {
+    return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+          child: GestureDetector(
+            onTap: () {
+              logout();
+              onLogoutTap();
+            },
+            child: FormButton(
+              disabled: false,
+              text: "로그아웃하기",
+              widthSize: MediaQuery.of(context).size.width,
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  void onLogoutTap() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SignUpScreen()),
+    );
+  }
+
+  void logout() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    await pref.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -190,36 +271,24 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
             elevation: 0.0,
           ),
           drawer: Drawer(
-            child: ListView(
+            child: Column(
               children: [
                 UserAccountsDrawerHeader(
-                  accountName: Text('학번 ${widget.studentNumber}'),
-                  accountEmail: const Text(''),
-                  onDetailsPressed: () {},
+                  currentAccountPicture: const CircleAvatar(
+                    backgroundImage: AssetImage('assets/images/profile.png'),
+                  ),
+                  accountName:
+                      Text('학번 ${widget.studentNumber} / 이름 ${widget.name}'),
+                  accountEmail: Text('Point : ${widget.point}'),
+                  onDetailsPressed: () {
+                    setState(() {
+                      showUserDetails = !showUserDetails;
+                    });
+                  },
                 ),
-                ListTile(
-                  leading: const FaIcon(FontAwesomeIcons.checkToSlot),
-                  iconColor: Theme.of(context).primaryColor,
-                  focusColor: Theme.of(context).primaryColor,
-                  title: const Text('투표하기'),
-                  onTap: () {},
-                  trailing: const Icon(Icons.navigate_next),
-                ),
-                ListTile(
-                  leading: const FaIcon(FontAwesomeIcons.listCheck),
-                  iconColor: Theme.of(context).primaryColor,
-                  focusColor: Theme.of(context).primaryColor,
-                  title: const Text('투표 확인'),
-                  onTap: onVoteCheckTap,
-                  trailing: const Icon(Icons.navigate_next),
-                ),
-                ListTile(
-                  leading: const FaIcon(FontAwesomeIcons.satellite),
-                  iconColor: Theme.of(context).primaryColor,
-                  focusColor: Theme.of(context).primaryColor,
-                  title: const Text('실시간 현황'),
-                  onTap: onLiveTap,
-                  trailing: const Icon(Icons.navigate_next),
+                Expanded(
+                  child:
+                      showUserDetails ? _buildUserDetail() : _buildDrawerList(),
                 )
               ],
             ),
@@ -238,7 +307,9 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
               isErrorDodgeBall = false;
               isErrorSchoolNumber = false;
               isErrorFinal = false;
-              tec.text = widget.studentNumber;
+              if (widget.studentNumber != null) {
+                tec.text = widget.studentNumber!;
+              }
               setState(() {});
             },
             child: SingleChildScrollView(

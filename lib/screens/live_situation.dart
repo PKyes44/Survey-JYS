@@ -7,10 +7,14 @@ import 'package:survey_jys/screens/vote_check_screen.dart';
 import 'package:survey_jys/screens/vote_screen.dart';
 
 class LiveSituation extends StatefulWidget {
-  String studentNumber;
+  String? studentNumber;
+  String? name;
+  String? point;
   LiveSituation({
     super.key,
     required this.studentNumber,
+    required this.name,
+    required this.point,
   });
 
   @override
@@ -107,6 +111,8 @@ class _LiveSituationState extends State<LiveSituation> {
       MaterialPageRoute(
         builder: (context) => LiveSituation(
           studentNumber: widget.studentNumber,
+          name: widget.name,
+          point: widget.point,
         ),
       ),
     );
@@ -118,6 +124,8 @@ class _LiveSituationState extends State<LiveSituation> {
       MaterialPageRoute(
         builder: (context) => VoteCheckScreen(
           studentNumber: widget.studentNumber,
+          name: widget.name,
+          point: widget.point,
         ),
       ),
     );
@@ -129,6 +137,8 @@ class _LiveSituationState extends State<LiveSituation> {
       MaterialPageRoute(
         builder: (context) => MakeQuestionScreen(
           studentNumber: widget.studentNumber,
+          name: widget.name,
+          point: widget.point,
         ),
       ),
     );

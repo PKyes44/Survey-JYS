@@ -18,22 +18,34 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   Map<String, String> formData = {};
-
   Map<dynamic, dynamic> userData = {};
+  Map<dynamic, dynamic> detailData = {};
 
   String nickname = '';
+
+  String name = '';
+  String point = '';
+  String studentNumber = '';
 
   void _onSubmitTap() {
     if (_formKey.currentState != null) {
       if (_formKey.currentState!.validate()) {
-        _formKey.currentState!.save(); 
-        
+        _formKey.currentState!.save();
+
+        name = detailData[formData['studentNumber']]['name'].toString();
+        point = detailData[formData['studentNumber']]['point'].toString();
+        studentNumber = formData['studentNumber'].toString();
+
+        clearData();
         _saveData();
+
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
             builder: (BuildContext context) => MakeQuestionScreen(
-              studentNumber: formData['studentNumber'].toString(),
+              studentNumber: studentNumber,
+              name: name,
+              point: point,
             ),
           ),
           (route) => false,
@@ -45,12 +57,18 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
   // 데이터를 저장하는 함수
   Future<void> _saveData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('studentNumber', formData['studentNumber'].toString());
+    prefs.setString('studentNumber', studentNumber);
+    prefs.setString('name', name);
+    prefs.setString('point', point);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text('저장완료 : ${formData['studentNumber']}')), // 저장 완료 메시지 출력
+        content: Text(
+          '저장완료 : $studentNumber-$name-$point',
+        ),
+      ), // 저장 완료 메시지 출력
     );
-    print("Generate token Completed");
+    print(
+        "Generate token Completed studentNum: $studentNumber name: $name point: $point");
   }
 
   @override
@@ -58,19 +76,26 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
     var readData = readUserData();
     readData.then((value) {
       var tempData = value;
-      var dataList = [];
       for (var key in tempData.keys) {
         Map<dynamic, dynamic> temp = value[key] as Map<dynamic, dynamic>;
         userData[key.toString()] = temp['password'];
+
+        var details = {
+          'point': temp['point'],
+          'name': temp['name'],
+        };
+        detailData[key.toString()] = details;
       }
-      for (var data in dataList) {
-        userData[data.key] = data['password'];
-        setState(() {});
-      }
+      setState(() {});
       print('userData : $userData');
     });
     // TODO: implement initState
     super.initState();
+  }
+
+  void clearData() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    await pref.clear();
   }
 
   Future<Map<Object?, Object?>> readUserData() async {
