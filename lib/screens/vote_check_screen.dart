@@ -1,14 +1,19 @@
 import 'package:flutter/services.dart';
 import 'package:survey_jys/constants/gaps.dart';
 import 'package:survey_jys/constants/sizes.dart';
-import 'package:survey_jys/vote_screen.dart';
+import 'package:survey_jys/screens/live_situation.dart';
+import 'package:survey_jys/screens/vote_screen.dart';
 import 'package:survey_jys/widgets/form_button.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class VoteCheckScreen extends StatefulWidget {
-  const VoteCheckScreen({super.key});
+  String studentNumber;
+  VoteCheckScreen({
+    super.key,
+    required this.studentNumber,
+  });
 
   @override
   State<VoteCheckScreen> createState() => _VoteCheckScreenState();
@@ -16,6 +21,7 @@ class VoteCheckScreen extends StatefulWidget {
 
 class _VoteCheckScreenState extends State<VoteCheckScreen> {
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  TextEditingController tec = TextEditingController();
   List<dynamic> dodgeBallData = [];
   List<dynamic> finalData = [];
   int searchSchoolNumber = 0;
@@ -36,7 +42,20 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const MakeQuestionScreen(),
+        builder: (context) => MakeQuestionScreen(
+          studentNumber: widget.studentNumber,
+        ),
+      ),
+    );
+  }
+
+  void onLiveTap() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LiveSituation(
+          studentNumber: widget.studentNumber,
+        ),
       ),
     );
   }
@@ -80,55 +99,6 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
     }
   }
 
-  // Future<String> getGrade() async {
-  //   final reference = FirebaseDatabase.instance.ref();
-  //   DataSnapshot snapshot = await reference.child('').get();
-  //   try {
-  //     final readData = snapshot.value.toString();
-  //     return readData;
-  //   } catch (e) {
-  //     return "";
-  //   }
-  // }
-
-  // Future<dynamic> getStoryList() async {
-  //   String grade;
-  //   getGrade().then((value) async {
-  //     grade = value;
-  //     final reference = FirebaseDatabase.instance.ref();
-  //     DataSnapshot snapshot = await reference.child('story/1').get();
-  //     try {
-  //       final readData = snapshot.value as Map<dynamic, dynamic>?;
-  //       print("readData : ${readData!.keys}");
-  //       List<Map<dynamic, dynamic>> returnData = List.empty(growable: true);
-  //       for (var readDataKey in readData.keys) {
-  //         returnData.add(readData[readDataKey]);
-  //         checkList.add(false);
-  //       }
-  //       setState(() {
-  //         storyData = returnData;
-  //       });
-  //       return returnData;
-  //     } catch (e) {
-  //       try {
-  //         final readData2 = snapshot.value as Map<dynamic, dynamic>;
-  //         print("readData2 : ${readData2.keys}");
-  //         var returnData = [];
-  //         for (var readDataKey in readData2.keys) {
-  //           returnData.add(readData2[readDataKey]);
-  //         }
-  //         setState(() {
-  //           storyData.add(returnData as Map<dynamic, dynamic>);
-  //         });
-  //         return returnData;
-  //       } catch (e) {
-  //         print("final ReadData");
-  //         return [null];
-  //       }
-  //     }
-  //   });
-  // }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -151,106 +121,134 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
               children: [
                 ListTile(
                   leading: const FaIcon(FontAwesomeIcons.checkToSlot),
-                  iconColor: Colors.purple,
-                  focusColor: Colors.purple,
+                  iconColor: Theme.of(context).primaryColor,
+                  focusColor: Theme.of(context).primaryColor,
                   title: const Text('투표하기'),
                   onTap: onVoteTap,
                   trailing: const Icon(Icons.navigate_next),
                 ),
                 ListTile(
                   leading: const FaIcon(FontAwesomeIcons.listCheck),
-                  iconColor: Colors.purple,
-                  focusColor: Colors.purple,
+                  iconColor: Theme.of(context).primaryColor,
+                  focusColor: Theme.of(context).primaryColor,
                   title: const Text('투표 확인'),
                   onTap: () {},
+                  trailing: const Icon(Icons.navigate_next),
+                ),
+                ListTile(
+                  leading: const FaIcon(FontAwesomeIcons.satellite),
+                  iconColor: Theme.of(context).primaryColor,
+                  focusColor: Theme.of(context).primaryColor,
+                  title: const Text('실시간 현황'),
+                  onTap: onLiveTap,
                   trailing: const Icon(Icons.navigate_next),
                 )
               ],
             ),
           ),
-          body: SingleChildScrollView(
-            child: Column(
-              children: [
-                Container(
-                  height: 1.0,
-                  width: double.infinity,
-                  color: Theme.of(context).primaryColor,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: Sizes.size20,
-                    vertical: Sizes.size16,
+          body: RefreshIndicator(
+            onRefresh: () async {
+              dodgeBallData = [];
+              finalData = [];
+              searchSchoolNumber = 0;
+              isCurrentData = false;
+
+              top1 = 0;
+              top2 = 0;
+              top3 = 0;
+              DBtop1 = 0;
+              DBtop2 = 0;
+              DBtop3 = 0;
+
+              tec.text = "";
+              setState(() {});
+            },
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Container(
+                    height: 1.0,
+                    width: double.infinity,
+                    color: Theme.of(context).primaryColor,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        children: [
-                          Form(
-                            key: formKey,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  "검색할 학생의 학번을 입력해주세요",
-                                  style: TextStyle(
-                                    fontSize: Sizes.size20,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                Gaps.v10,
-                                TextFormField(
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                  ],
-                                  validator: (value) {
-                                    if (value == null || value.length != 4) {
-                                      return "학번을 제대로 입력해주세요";
-                                    }
-                                    return null;
-                                  },
-                                  onSaved: (newValue) {
-                                    searchSchoolNumber =
-                                        int.parse(newValue.toString());
-                                  },
-                                  decoration: InputDecoration(
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 10.0,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Sizes.size20,
+                      vertical: Sizes.size16,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Column(
+                          children: [
+                            Form(
+                              key: formKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "검색할 학생의 학번을 입력해주세요",
+                                    style: TextStyle(
+                                      fontSize: Sizes.size20,
+                                      fontWeight: FontWeight.w500,
                                     ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        Sizes.size10,
+                                  ),
+                                  Gaps.v10,
+                                  TextFormField(
+                                    controller: tec,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    validator: (value) {
+                                      if (value == null || value.length != 4) {
+                                        return "학번을 제대로 입력해주세요";
+                                      }
+                                      return null;
+                                    },
+                                    onSaved: (newValue) {
+                                      searchSchoolNumber =
+                                          int.parse(newValue.toString());
+                                    },
+                                    decoration: InputDecoration(
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                        horizontal: 10.0,
+                                      ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          Sizes.size10,
+                                        ),
+                                      ),
+                                      labelText: "학번 ex) 3123",
+                                      labelStyle: const TextStyle(
+                                        fontSize: Sizes.size16,
                                       ),
                                     ),
-                                    labelText: "학번 ex) 3123",
-                                    labelStyle: const TextStyle(
-                                      fontSize: Sizes.size16,
+                                  ),
+                                  Gaps.v10,
+                                  GestureDetector(
+                                    onTap: onSubmit,
+                                    child: FormButton(
+                                      disabled: false,
+                                      text: "검색하기",
+                                      widthSize:
+                                          MediaQuery.of(context).size.width,
                                     ),
-                                  ),
-                                ),
-                                Gaps.v10,
-                                GestureDetector(
-                                  onTap: onSubmit,
-                                  child: FormButton(
-                                    disabled: false,
-                                    text: "Search",
-                                    widthSize:
-                                        MediaQuery.of(context).size.width,
-                                  ),
-                                )
-                              ],
+                                  )
+                                ],
+                              ),
                             ),
-                          ),
-                          Gaps.v10,
-                          isCurrentData
-                              ? showData()
-                              : const Text("검색어 또는 데이터가 없습니다"),
-                        ],
-                      ),
-                    ],
+                            Gaps.v10,
+                            isCurrentData
+                                ? showData()
+                                : const Text("검색어 또는 데이터가 없습니다"),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -259,6 +257,7 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
   }
 
   Column showData() {
+    tec.text = "";
     return Column(
       children: [
         Text(
