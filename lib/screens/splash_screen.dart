@@ -52,7 +52,7 @@ class _SplashScreenState extends State<SplashScreen> {
               name: name,
               point: point,
             )
-          : const SignUpScreen(),
+          : const LoginScreen(),
     );
   }
 }

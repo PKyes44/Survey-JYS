@@ -142,7 +142,7 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
               Gaps.v28,
               TextFormField(
                 decoration: InputDecoration(
-                  hintText: '학번',
+                  hintText: '학번을 입력해주세요',
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
                       color: Colors.grey.shade400,
@@ -176,7 +176,7 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                 enableSuggestions: false,
                 autocorrect: false,
                 decoration: InputDecoration(
-                  hintText: 'Password',
+                  hintText: '비밀번호를 입력해주세요',
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
                       color: Colors.grey.shade400,

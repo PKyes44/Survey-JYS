@@ -2,9 +2,13 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:survey_jys/authentication/login_screen.dart';
+import 'package:survey_jys/authentication/sign_up_screen.dart';
 import 'package:survey_jys/constants/sizes.dart';
 import 'package:survey_jys/screens/vote_check_screen.dart';
 import 'package:survey_jys/screens/vote_screen.dart';
+import 'package:survey_jys/widgets/form_button.dart';
 
 class LiveSituation extends StatefulWidget {
   String? studentNumber;
@@ -24,6 +28,8 @@ class LiveSituation extends StatefulWidget {
 class _LiveSituationState extends State<LiveSituation> {
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
+  bool showUserDetails = false;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -32,9 +38,6 @@ class _LiveSituationState extends State<LiveSituation> {
     readVoteData();
   }
 
-  // 0: 1-1, 1: 1-2, 2: 1-3, 3: 1-4
-  // 9
-  // 17
   Map<int, int> dodgeBallData = {};
   Map<int, int> finalData = {};
   void reset() {
@@ -106,7 +109,7 @@ class _LiveSituationState extends State<LiveSituation> {
   }
 
   void onLiveTap() {
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
         builder: (context) => LiveSituation(
@@ -115,11 +118,12 @@ class _LiveSituationState extends State<LiveSituation> {
           point: widget.point,
         ),
       ),
+      (route) => false,
     );
   }
 
   void onVoteCheckTap() {
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
         builder: (context) => VoteCheckScreen(
@@ -128,11 +132,12 @@ class _LiveSituationState extends State<LiveSituation> {
           point: widget.point,
         ),
       ),
+      (route) => false,
     );
   }
 
   void onVoteTap() {
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
         builder: (context) => MakeQuestionScreen(
@@ -141,6 +146,7 @@ class _LiveSituationState extends State<LiveSituation> {
           point: widget.point,
         ),
       ),
+      (route) => false,
     );
   }
 
@@ -150,6 +156,9 @@ class _LiveSituationState extends State<LiveSituation> {
 
     var data = snapshot.value as Map<dynamic, dynamic>;
     for (var key in data.keys) {
+      if (key == 'user') {
+        continue;
+      }
       var value = data[key];
       for (int i = 0; i < 3; i++) {
         if (int.parse(key.substring(0, 1)) > 3) {
@@ -179,6 +188,81 @@ class _LiveSituationState extends State<LiveSituation> {
     setState(() {});
   }
 
+  Widget _buildDrawerList() {
+    return ListView(children: [
+      ListTile(
+        leading: const FaIcon(FontAwesomeIcons.checkToSlot),
+        iconColor: Theme.of(context).primaryColor,
+        focusColor: Theme.of(context).primaryColor,
+        title: const Text('투표하기'),
+        onTap: onVoteTap,
+        trailing: const Icon(Icons.navigate_next),
+      ),
+      ListTile(
+        leading: const FaIcon(FontAwesomeIcons.listCheck),
+        iconColor: Theme.of(context).primaryColor,
+        focusColor: Theme.of(context).primaryColor,
+        title: const Text('투표 확인'),
+        onTap: onVoteCheckTap,
+        trailing: const Icon(Icons.navigate_next),
+      ),
+      ListTile(
+        leading: const FaIcon(FontAwesomeIcons.satellite),
+        iconColor: Theme.of(context).primaryColor,
+        focusColor: Theme.of(context).primaryColor,
+        title: const Text('실시간 현황'),
+        onTap: onLiveTap,
+        trailing: const Icon(Icons.navigate_next),
+      ),
+    ]);
+  }
+
+  Widget _buildUserDetail() {
+    return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+          child: GestureDetector(
+            onTap: () {
+              logout();
+              onLogoutTap();
+            },
+            child: FormButton(
+              disabled: false,
+              text: "로그아웃하기",
+              widthSize: MediaQuery.of(context).size.width,
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  void onLoginTap() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => const LoginScreen(),
+      ),
+      (route) => false,
+    );
+  }
+
+  void onLogoutTap() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
+  }
+
+  void logout() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    await pref.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -197,31 +281,39 @@ class _LiveSituationState extends State<LiveSituation> {
             elevation: 0.0,
           ),
           drawer: Drawer(
-            child: ListView(
+            child: Column(
               children: [
-                ListTile(
-                  leading: const FaIcon(FontAwesomeIcons.checkToSlot),
-                  iconColor: Theme.of(context).primaryColor,
-                  focusColor: Theme.of(context).primaryColor,
-                  title: const Text('투표하기'),
-                  onTap: onVoteTap,
-                  trailing: const Icon(Icons.navigate_next),
-                ),
-                ListTile(
-                  leading: const FaIcon(FontAwesomeIcons.listCheck),
-                  iconColor: Theme.of(context).primaryColor,
-                  focusColor: Theme.of(context).primaryColor,
-                  title: const Text('투표 확인'),
-                  onTap: onVoteCheckTap,
-                  trailing: const Icon(Icons.navigate_next),
-                ),
-                ListTile(
-                  leading: const FaIcon(FontAwesomeIcons.satellite),
-                  iconColor: Theme.of(context).primaryColor,
-                  focusColor: Theme.of(context).primaryColor,
-                  title: const Text('실시간 현황'),
-                  onTap: onLiveTap,
-                  trailing: const Icon(Icons.navigate_next),
+                (widget.studentNumber != null &&
+                        widget.name != null &&
+                        widget.point != null)
+                    ? UserAccountsDrawerHeader(
+                        currentAccountPicture: const CircleAvatar(
+                          backgroundImage:
+                              AssetImage('assets/images/profile.png'),
+                        ),
+                        accountName: Text(
+                            '학번 ${widget.studentNumber} / 이름 ${widget.name}'),
+                        accountEmail: Text('Point : ${widget.point}'),
+                        onDetailsPressed: () {
+                          setState(() {
+                            showUserDetails = !showUserDetails;
+                          });
+                        },
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: GestureDetector(
+                          onTap: onLoginTap,
+                          child: FormButton(
+                            disabled: false,
+                            text: "회원가입/로그인하기",
+                            widthSize: MediaQuery.of(context).size.width,
+                          ),
+                        ),
+                      ),
+                Expanded(
+                  child:
+                      showUserDetails ? _buildUserDetail() : _buildDrawerList(),
                 )
               ],
             ),

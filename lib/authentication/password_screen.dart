@@ -38,7 +38,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
   }
 
   bool isPasswordValid() {
-    return _password.isNotEmpty && _password.length > 8;
+    return _password.isNotEmpty && _password.length > 5;
   }
 
   void onScaffoldTap() {
@@ -93,10 +93,18 @@ class _PasswordScreenState extends State<PasswordScreen> {
             children: [
               Gaps.v40,
               const Text(
-                "Password",
+                "비밀번호를 입력해주세요",
                 style: TextStyle(
                   fontSize: Sizes.size20,
                   fontWeight: FontWeight.w700,
+                ),
+              ),
+              Gaps.v8,
+              const Text(
+                "계정 생성 후 바꿀 수 없습니다",
+                style: TextStyle(
+                  fontSize: Sizes.size16,
+                  color: Colors.black54,
                 ),
               ),
               Gaps.v16,
@@ -135,7 +143,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
                     ],
                   ),
                   // errorText: "",
-                  hintText: "Password",
+                  hintText: "비밀번호",
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
                       color: Colors.grey.shade400,
@@ -150,7 +158,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
               ),
               Gaps.v10,
               const Text(
-                "Your password must have:",
+                "다음의 조건에 만족해야 합니다",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
@@ -164,7 +172,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
                     color: isPasswordValid() ? Colors.green : Colors.grey,
                   ),
                   Gaps.h5,
-                  const Text("8 to 20 characters"),
+                  const Text("6글자 이상이며 20글자 이하여야 합니다"),
                 ],
               ),
               Gaps.v16,
@@ -173,7 +181,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
                 child: FormButton(
                   widthSize: MediaQuery.of(context).size.width,
                   disabled: !isPasswordValid(),
-                  text: "Next",
+                  text: "다음",
                 ),
               ),
             ],

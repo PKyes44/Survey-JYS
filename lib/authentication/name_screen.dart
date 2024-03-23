@@ -1,5 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:survey_jys/authentication/login_screen.dart';
 import 'package:survey_jys/authentication/sign_up_screen.dart';
 import 'package:survey_jys/constants/gaps.dart';
 import 'package:survey_jys/constants/sizes.dart';
@@ -49,7 +50,7 @@ class _NameScreenState extends State<NameScreen> {
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const SignUpScreen(),
+        builder: (context) => const LoginScreen(),
       ),
     );
   }
@@ -76,7 +77,7 @@ class _NameScreenState extends State<NameScreen> {
             children: [
               Gaps.v40,
               const Text(
-                "What is your name?",
+                "당신의 이름을 알려주세요",
                 style: TextStyle(
                   fontSize: Sizes.size20,
                   fontWeight: FontWeight.w700,
@@ -84,7 +85,7 @@ class _NameScreenState extends State<NameScreen> {
               ),
               Gaps.v8,
               const Text(
-                "You cannot change this later.",
+                "계정 생성 후 바꿀 수 없습니다",
                 style: TextStyle(
                   fontSize: Sizes.size16,
                   color: Colors.black54,
@@ -98,7 +99,7 @@ class _NameScreenState extends State<NameScreen> {
                 controller: _nameController,
                 cursorColor: Theme.of(context).primaryColor,
                 decoration: InputDecoration(
-                  hintText: "Name",
+                  hintText: "이름을 입력해주세요",
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
                       color: Colors.grey.shade400,

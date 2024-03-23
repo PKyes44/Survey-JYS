@@ -37,7 +37,7 @@ class SignUpScreen extends StatelessWidget {
             children: [
               Gaps.v80,
               const Text(
-                "Sign up for JYS EA",
+                "JYS-Survey에 계정 만들기",
                 style: TextStyle(
                   fontSize: Sizes.size24,
                   fontWeight: FontWeight.w700,
@@ -45,8 +45,8 @@ class SignUpScreen extends StatelessWidget {
               ),
               Gaps.v20,
               const Text(
-                "Create a profile, memorize english words,"
-                " make your own English quiz",
+                "세종장영실고등학교 체육대회\n"
+                "승자예측에 참여하세요 !",
                 style: TextStyle(
                   fontSize: Sizes.size16,
                   color: Colors.black45,
@@ -57,7 +57,7 @@ class SignUpScreen extends StatelessWidget {
               AuthButton(
                 onTap: (p0) => onEmailTap(context),
                 icon: const FaIcon(FontAwesomeIcons.user),
-                text: "Use Username & Password",
+                text: "학번 & 비밀번호로 회원가입하기",
               ),
               Gaps.v16,
             ],
@@ -74,12 +74,12 @@ class SignUpScreen extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text("Already have an account?"),
+              const Text("이미 계정을 가지고 있나요 ?"),
               Gaps.h5,
               GestureDetector(
                 onTap: () => onLoginTap(context),
                 child: Text(
-                  "Log in",
+                  "로그인하기",
                   style: TextStyle(
                     color: Theme.of(context).primaryColor,
                     fontWeight: FontWeight.w600,

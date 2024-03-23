@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:survey_jys/authentication/login_screen.dart';
 import 'package:survey_jys/authentication/sign_up_screen.dart';
 import 'package:survey_jys/constants/gaps.dart';
 import 'package:survey_jys/constants/sizes.dart';
@@ -118,7 +119,7 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
   }
 
   void onVoteCheckTap() {
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
         builder: (context) => VoteCheckScreen(
@@ -127,11 +128,26 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
           point: widget.point,
         ),
       ),
+      (route) => false,
+    );
+  }
+
+  void onVoteTap() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MakeQuestionScreen(
+          studentNumber: widget.studentNumber,
+          name: widget.name,
+          point: widget.point,
+        ),
+      ),
+      (route) => false,
     );
   }
 
   void onLiveTap() {
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
         builder: (context) => LiveSituation(
@@ -140,6 +156,17 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
           point: widget.point,
         ),
       ),
+      (route) => false,
+    );
+  }
+
+  void onLoginTap() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => const SignUpScreen(),
+      ),
+      (route) => false,
     );
   }
 
@@ -195,7 +222,7 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
         iconColor: Theme.of(context).primaryColor,
         focusColor: Theme.of(context).primaryColor,
         title: const Text('투표하기'),
-        onTap: () {},
+        onTap: onVoteTap,
         trailing: const Icon(Icons.navigate_next),
       ),
       ListTile(
@@ -244,7 +271,7 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
   void onLogoutTap() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const SignUpScreen()),
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
   }
 
@@ -273,19 +300,34 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
           drawer: Drawer(
             child: Column(
               children: [
-                UserAccountsDrawerHeader(
-                  currentAccountPicture: const CircleAvatar(
-                    backgroundImage: AssetImage('assets/images/profile.png'),
-                  ),
-                  accountName:
-                      Text('학번 ${widget.studentNumber} / 이름 ${widget.name}'),
-                  accountEmail: Text('Point : ${widget.point}'),
-                  onDetailsPressed: () {
-                    setState(() {
-                      showUserDetails = !showUserDetails;
-                    });
-                  },
-                ),
+                (widget.studentNumber != null &&
+                        widget.name != null &&
+                        widget.point != null)
+                    ? UserAccountsDrawerHeader(
+                        currentAccountPicture: const CircleAvatar(
+                          backgroundImage:
+                              AssetImage('assets/images/profile.png'),
+                        ),
+                        accountName: Text(
+                            '학번 ${widget.studentNumber} / 이름 ${widget.name}'),
+                        accountEmail: Text('Point : ${widget.point}'),
+                        onDetailsPressed: () {
+                          setState(() {
+                            showUserDetails = !showUserDetails;
+                          });
+                        },
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: GestureDetector(
+                          onTap: onLoginTap,
+                          child: FormButton(
+                            disabled: false,
+                            text: "회원가입/로그인하기",
+                            widthSize: MediaQuery.of(context).size.width,
+                          ),
+                        ),
+                      ),
                 Expanded(
                   child:
                       showUserDetails ? _buildUserDetail() : _buildDrawerList(),

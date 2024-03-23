@@ -1,4 +1,7 @@
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:survey_jys/authentication/login_screen.dart';
+import 'package:survey_jys/authentication/sign_up_screen.dart';
 import 'package:survey_jys/constants/gaps.dart';
 import 'package:survey_jys/constants/sizes.dart';
 import 'package:survey_jys/screens/live_situation.dart';
@@ -38,12 +41,14 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
   var DBtop2 = 0;
   var DBtop3 = 0;
 
+  bool showUserDetails = false;
+
   void onScaffoldTap() {
     FocusScope.of(context).unfocus();
   }
 
   void onVoteTap() {
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
         builder: (context) => MakeQuestionScreen(
@@ -52,11 +57,26 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
           point: widget.point,
         ),
       ),
+      (route) => false,
+    );
+  }
+
+  void onVoteCheckTap() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VoteCheckScreen(
+          studentNumber: widget.studentNumber,
+          name: widget.name,
+          point: widget.point,
+        ),
+      ),
+      (route) => false,
     );
   }
 
   void onLiveTap() {
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
         builder: (context) => LiveSituation(
@@ -65,6 +85,7 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
           point: widget.point,
         ),
       ),
+      (route) => false,
     );
   }
 
@@ -107,6 +128,81 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
     }
   }
 
+  Widget _buildDrawerList() {
+    return ListView(children: [
+      ListTile(
+        leading: const FaIcon(FontAwesomeIcons.checkToSlot),
+        iconColor: Theme.of(context).primaryColor,
+        focusColor: Theme.of(context).primaryColor,
+        title: const Text('투표하기'),
+        onTap: onVoteTap,
+        trailing: const Icon(Icons.navigate_next),
+      ),
+      ListTile(
+        leading: const FaIcon(FontAwesomeIcons.listCheck),
+        iconColor: Theme.of(context).primaryColor,
+        focusColor: Theme.of(context).primaryColor,
+        title: const Text('투표 확인'),
+        onTap: onVoteCheckTap,
+        trailing: const Icon(Icons.navigate_next),
+      ),
+      ListTile(
+        leading: const FaIcon(FontAwesomeIcons.satellite),
+        iconColor: Theme.of(context).primaryColor,
+        focusColor: Theme.of(context).primaryColor,
+        title: const Text('실시간 현황'),
+        onTap: onLiveTap,
+        trailing: const Icon(Icons.navigate_next),
+      ),
+    ]);
+  }
+
+  Widget _buildUserDetail() {
+    return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+          child: GestureDetector(
+            onTap: () {
+              logout();
+              onLogoutTap();
+            },
+            child: FormButton(
+              disabled: false,
+              text: "로그아웃하기",
+              widthSize: MediaQuery.of(context).size.width,
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  void onLoginTap() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => const LoginScreen(),
+      ),
+      (route) => false,
+    );
+  }
+
+  void onLogoutTap() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
+  }
+
+  void logout() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    await pref.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -125,31 +221,39 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
             elevation: 0.0,
           ),
           drawer: Drawer(
-            child: ListView(
+            child: Column(
               children: [
-                ListTile(
-                  leading: const FaIcon(FontAwesomeIcons.checkToSlot),
-                  iconColor: Theme.of(context).primaryColor,
-                  focusColor: Theme.of(context).primaryColor,
-                  title: const Text('투표하기'),
-                  onTap: onVoteTap,
-                  trailing: const Icon(Icons.navigate_next),
-                ),
-                ListTile(
-                  leading: const FaIcon(FontAwesomeIcons.listCheck),
-                  iconColor: Theme.of(context).primaryColor,
-                  focusColor: Theme.of(context).primaryColor,
-                  title: const Text('투표 확인'),
-                  onTap: () {},
-                  trailing: const Icon(Icons.navigate_next),
-                ),
-                ListTile(
-                  leading: const FaIcon(FontAwesomeIcons.satellite),
-                  iconColor: Theme.of(context).primaryColor,
-                  focusColor: Theme.of(context).primaryColor,
-                  title: const Text('실시간 현황'),
-                  onTap: onLiveTap,
-                  trailing: const Icon(Icons.navigate_next),
+                (widget.studentNumber != null &&
+                        widget.name != null &&
+                        widget.point != null)
+                    ? UserAccountsDrawerHeader(
+                        currentAccountPicture: const CircleAvatar(
+                          backgroundImage:
+                              AssetImage('assets/images/profile.png'),
+                        ),
+                        accountName: Text(
+                            '학번 ${widget.studentNumber} / 이름 ${widget.name}'),
+                        accountEmail: Text('Point : ${widget.point}'),
+                        onDetailsPressed: () {
+                          setState(() {
+                            showUserDetails = !showUserDetails;
+                          });
+                        },
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: GestureDetector(
+                          onTap: onLoginTap,
+                          child: FormButton(
+                            disabled: false,
+                            text: "회원가입/로그인하기",
+                            widthSize: MediaQuery.of(context).size.width,
+                          ),
+                        ),
+                      ),
+                Expanded(
+                  child:
+                      showUserDetails ? _buildUserDetail() : _buildDrawerList(),
                 )
               ],
             ),
