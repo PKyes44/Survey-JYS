@@ -113,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               textAlign: TextAlign.center,
                             ),
                             Text(
-                              "일부 기능을 사용할 수 없음을 알려드립니다",
+                              "일부 기능을 사용할 수 없습니다",
                               style: TextStyle(
                                   fontSize: Sizes.size10,
                                   fontWeight: FontWeight.w600,

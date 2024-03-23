@@ -4,7 +4,9 @@ import 'package:survey_jys/authentication/login_screen.dart';
 import 'package:survey_jys/authentication/sign_up_screen.dart';
 import 'package:survey_jys/constants/gaps.dart';
 import 'package:survey_jys/constants/sizes.dart';
+import 'package:survey_jys/screens/bet_screen.dart';
 import 'package:survey_jys/screens/live_situation.dart';
+import 'package:survey_jys/screens/rank_screen.dart';
 import 'package:survey_jys/screens/vote_check_screen.dart';
 import 'package:survey_jys/widgets/form_button.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -43,8 +45,6 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
   bool isErrorSchoolNumber = false;
   bool isErrorFinal = false;
 
-  String userId = 'user1';
-
   TextEditingController tec = TextEditingController();
 
   bool showUserDetails = false;
@@ -53,12 +53,21 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
   var name;
   var point;
 
+  bool isLogined = false;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+
     if (widget.studentNumber != null) {
       tec.text = widget.studentNumber.toString();
+    }
+
+    if (widget.studentNumber != null &&
+        widget.name != null &&
+        widget.point != null) {
+      isLogined = true;
     }
   }
 
@@ -114,8 +123,65 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
     print("top1 = $top1\ntop2 = $top2\ntop3 = $top3");
   }
 
+  void writeVotes() {
+    var dodgeBallVoteList = dodgeBallRank;
+    var finalVoteList = finalRank;
+
+    var voteData = {
+      "dodgeBall": dodgeBallVoteList,
+      "final": finalVoteList,
+    };
+
+    DatabaseReference ref = FirebaseDatabase.instance.ref('$schoolNumber');
+    ref.set(voteData);
+  }
+
+  void onSubmit() {
+    print("dodgeBallRank : $dodgeBallRank\nfinalRank: $finalRank");
+    if (dodgeBallRank.contains(0) ||
+        finalRank.contains(0) ||
+        dodgeBallRank.isEmpty ||
+        finalRank.isEmpty) {
+      if (dodgeBallRank.contains(0) || dodgeBallRank.isEmpty) {
+        isErrorDodgeBall = true;
+      }
+      if (finalRank.contains(0) || finalRank.isEmpty) {
+        isErrorFinal = true;
+      }
+      setState(() {});
+      return;
+    }
+    setState(() {
+      isErrorDodgeBall = false;
+      isErrorFinal = false;
+    });
+
+    if (formKey.currentState != null) {
+      if (formKey.currentState!.validate()) {
+        isErrorFinal = false;
+        formKey.currentState!.save();
+        writeVotes();
+        onVoteCheckTap();
+      } else {
+        isErrorSchoolNumber = true;
+      }
+    }
+  }
+
   void onScaffoldTap() {
     FocusScope.of(context).unfocus();
+  }
+
+  void onLogoutTap() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
+  }
+
+  void logout() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    await pref.clear();
   }
 
   void onVoteCheckTap() {
@@ -170,78 +236,160 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
     );
   }
 
-  void writeVotes() {
-    var dodgeBallVoteList = dodgeBallRank;
-    var finalVoteList = finalRank;
-
-    var voteData = {
-      "dodgeBall": dodgeBallVoteList,
-      "final": finalVoteList,
-    };
-
-    DatabaseReference ref = FirebaseDatabase.instance.ref('$schoolNumber');
-    ref.set(voteData);
+  void onBetTap() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => BetScreen(
+          studentNumber: widget.studentNumber,
+          name: widget.name,
+          point: widget.point,
+        ),
+      ),
+      (route) => false,
+    );
   }
 
-  void onSubmit() {
-    print("dodgeBallRank : $dodgeBallRank\nfinalRank: $finalRank");
-    if (dodgeBallRank.contains(0) ||
-        finalRank.contains(0) ||
-        dodgeBallRank.isEmpty ||
-        finalRank.isEmpty) {
-      if (dodgeBallRank.contains(0) || dodgeBallRank.isEmpty) {
-        isErrorDodgeBall = true;
-      }
-      if (finalRank.contains(0) || finalRank.isEmpty) {
-        isErrorFinal = true;
-      }
-      setState(() {});
-      return;
-    }
-    setState(() {
-      isErrorDodgeBall = false;
-      isErrorFinal = false;
-    });
+  void onRankTap() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => RankScreen(
+          studentNumber: widget.studentNumber,
+          name: widget.name,
+          point: widget.point,
+        ),
+      ),
+      (route) => false,
+    );
+  }
 
-    if (formKey.currentState != null) {
-      if (formKey.currentState!.validate()) {
-        isErrorFinal = false;
-        formKey.currentState!.save();
-        writeVotes();
-        onVoteCheckTap();
-      } else {
-        isErrorSchoolNumber = true;
-      }
-    }
+  void onLockedTap() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Gaps.v20,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "비회원은 ",
+                    style: TextStyle(
+                      fontSize: Sizes.size16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    "사용할 수 없는 기능",
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColor,
+                      fontSize: Sizes.size16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Text(
+                    "입니다",
+                    style: TextStyle(
+                      fontSize: Sizes.size16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Gaps.v40,
+              const Text(
+                textAlign: TextAlign.start,
+                "계정을 만들고 싶다면 ? ",
+                style: TextStyle(
+                  fontSize: Sizes.size14,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 15.0,
+                  right: 15.0,
+                  bottom: 15.0,
+                  top: 10,
+                ),
+                child: GestureDetector(
+                  onTap: onLoginTap,
+                  child: FormButton(
+                    disabled: false,
+                    text: "회원가입/로그인하기",
+                    widthSize: MediaQuery.of(context).size.width,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildDrawerList() {
-    return ListView(children: [
-      ListTile(
-        leading: const FaIcon(FontAwesomeIcons.checkToSlot),
-        iconColor: Theme.of(context).primaryColor,
-        focusColor: Theme.of(context).primaryColor,
-        title: const Text('투표하기'),
-        onTap: onVoteTap,
-        trailing: const Icon(Icons.navigate_next),
-      ),
-      ListTile(
-        leading: const FaIcon(FontAwesomeIcons.listCheck),
-        iconColor: Theme.of(context).primaryColor,
-        focusColor: Theme.of(context).primaryColor,
-        title: const Text('투표 확인'),
-        onTap: onVoteCheckTap,
-        trailing: const Icon(Icons.navigate_next),
-      ),
-      ListTile(
-        leading: const FaIcon(FontAwesomeIcons.satellite),
-        iconColor: Theme.of(context).primaryColor,
-        focusColor: Theme.of(context).primaryColor,
-        title: const Text('실시간 현황'),
-        onTap: onLiveTap,
-        trailing: const Icon(Icons.navigate_next),
-      ),
-    ]);
+    return ListView(
+      children: [
+        ListTile(
+          leading: const FaIcon(FontAwesomeIcons.checkToSlot),
+          iconColor: Theme.of(context).primaryColor,
+          focusColor: Theme.of(context).primaryColor,
+          title: const Text('BIG이벤트 투표하기'),
+          onTap: onVoteTap,
+          trailing: const Icon(Icons.navigate_next),
+        ),
+        ListTile(
+          leading: const FaIcon(FontAwesomeIcons.listCheck),
+          iconColor: Theme.of(context).primaryColor,
+          focusColor: Theme.of(context).primaryColor,
+          title: const Text('BIG이벤트 투표 확인'),
+          onTap: onVoteCheckTap,
+          trailing: const Icon(Icons.navigate_next),
+        ),
+        ListTile(
+          leading: const FaIcon(FontAwesomeIcons.satellite),
+          iconColor: Theme.of(context).primaryColor,
+          focusColor: Theme.of(context).primaryColor,
+          title: const Text('BIG이벤트 투표 현황'),
+          onTap: onLiveTap,
+          trailing: const Icon(Icons.navigate_next),
+        ),
+        ListTile(
+          leading: const FaIcon(FontAwesomeIcons.checkToSlot),
+          trailing: isLogined
+              ? const Icon(Icons.navigate_next)
+              : const FaIcon(FontAwesomeIcons.lock, size: Sizes.size20),
+          iconColor: isLogined ? Theme.of(context).primaryColor : Colors.grey,
+          focusColor: Theme.of(context).primaryColor,
+          title: Text(
+            '세부종목 베팅하기',
+            style: TextStyle(
+              color: isLogined ? Colors.black : Colors.grey,
+            ),
+          ),
+          onTap: isLogined ? onBetTap : onLockedTap,
+        ),
+        ListTile(
+          leading: const FaIcon(FontAwesomeIcons.rankingStar),
+          trailing: isLogined
+              ? const Icon(Icons.navigate_next)
+              : const FaIcon(FontAwesomeIcons.lock, size: Sizes.size20),
+          iconColor: isLogined ? Theme.of(context).primaryColor : Colors.grey,
+          focusColor: Theme.of(context).primaryColor,
+          title: Text(
+            '포인트 랭킹 현황',
+            style: TextStyle(
+              color: isLogined ? Colors.black : Colors.grey,
+            ),
+          ),
+          onTap: isLogined ? onBetTap : onLockedTap,
+        ),
+      ],
+    );
   }
 
   Widget _buildUserDetail() {
@@ -266,18 +414,6 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
         )
       ],
     );
-  }
-
-  void onLogoutTap() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
-  }
-
-  void logout() async {
-    SharedPreferences pref = await SharedPreferences.getInstance();
-    await pref.clear();
   }
 
   @override

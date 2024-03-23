@@ -17,7 +17,7 @@ class MyApp extends StatefulWidget {
   @override
   State<MyApp> createState() => _MyAppState();
 }
-
+  
 class _MyAppState extends State<MyApp> {
   Color mainColor = const Color(0xffFD3C4F);
 
