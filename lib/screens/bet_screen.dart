@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_literals_to_create_immutables
 
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:survey_jys/authentication/login_screen.dart';
 import 'package:survey_jys/authentication/sign_up_screen.dart';
@@ -30,12 +31,27 @@ class BetScreen extends StatefulWidget {
 }
 
 class _BetScreenState extends State<BetScreen> {
+  final TextEditingController _bettingPoint1Controller =
+      TextEditingController();
+  final TextEditingController _bettingPoint2Controller =
+      TextEditingController();
+  final TextEditingController _bettingPoint3Controller =
+      TextEditingController();
   bool showUserDetails = false;
   bool isLogined = false;
 
   Map<dynamic, dynamic> gameData = {};
   Map<dynamic, dynamic> teamData = {};
   Map<dynamic, dynamic> betData = {};
+
+  var top1 = 0;
+  var top2 = 0;
+  var top3 = 0;
+  List<int> finalRank = [];
+
+  String? _bettingPoint1;
+  String? _bettingPoint2;
+  String? _bettingPoint3;
 
   void readBetData() async {
     final reference = FirebaseDatabase.instance.ref();
@@ -325,22 +341,152 @@ class _BetScreenState extends State<BetScreen> {
     }
   }
 
+  void clickedClass({
+    required var player,
+    required var classNum,
+    required StateSetter setDialog,
+  }) {
+    if (finalRank.contains(classNum)) {
+      print("ClassNum: $classNum");
+      print(finalRank);
+      if (top3 == classNum) {
+        top3 = 0;
+      } else if (top2 == classNum) {
+        top2 = 0;
+      } else if (top1 == classNum) {
+        top1 = 0;
+      }
+    } else if (top1 == 0 || (top2 != 0 && top3 != 0)) {
+      top1 = classNum;
+      print("top1: $top1");
+    } else if (top2 == 0 || (top3 != 0 && top1 != 0)) {
+      top2 = classNum;
+      print("top2: $top2");
+    } else if (top3 == 0 || (top1 != 0 && top3 != 0)) {
+      top3 = classNum;
+      print("top2: $top3");
+    }
+    finalRank = [top1, top2, top3];
+    setDialog(() {});
+    print("top1 = $top1\ntop2 = $top2\ntop3 = $top3");
+  }
+
   Column showTeams({
+    required StateSetter state,
     required int classNum,
     required String player,
   }) {
+    bool disabled = true;
+    if (top1 == classNum || top2 == classNum || top3 == classNum) {
+      disabled = false;
+    } else {
+      disabled = true;
+    }
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         GestureDetector(
-          child: FormButton(
-            disabled: true,
-            text: '$classNum반',
-            widthSize: (MediaQuery.of(context).size.width - 60) / 5,
+          onTap: () => clickedClass(
+              classNum: classNum, player: player, setDialog: state),
+          child: SizedBox(
+            width: (MediaQuery.of(context).size.width - 60) / 5,
+            child: AnimatedContainer(
+              duration: const Duration(
+                milliseconds: 300,
+              ),
+              padding: const EdgeInsets.symmetric(
+                vertical: Sizes.size16,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(
+                  Sizes.size5,
+                ),
+                color: disabled
+                    ? Colors.grey.shade300
+                    : Theme.of(context).primaryColor,
+              ),
+              child: AnimatedDefaultTextStyle(
+                duration: const Duration(microseconds: 300),
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: disabled ? Colors.grey.shade400 : Colors.white,
+                ),
+                child: Text(
+                  '$classNum반',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
           ),
         ),
         Gaps.v4,
-        Text("승률 ${getWinningOdd(player: player, classNum: classNum)}%"),
-        Gaps.v12,
+        Text(
+          "${(teamData[player][classNum]['lose'] + teamData[player][classNum]['win'])}전 ${teamData[player][classNum]['win']}승 ${teamData[player][classNum]['lose']}패",
+          textAlign: TextAlign.start,
+          style: const TextStyle(
+            fontWeight: FontWeight.w300,
+            fontSize: Sizes.size12,
+          ),
+        ),
+        Gaps.v4,
+        Text(
+          "승률 ${getWinningOdd(player: player, classNum: classNum)}%",
+          textAlign: TextAlign.start,
+          style: const TextStyle(
+            fontWeight: FontWeight.w300,
+            fontSize: Sizes.size12,
+          ),
+        ),
+        Gaps.v16,
+      ],
+    );
+  }
+
+  String? isBettingValid(String? bettingPoint) {
+    if (bettingPoint == null) {
+      return null;
+    }
+    return null;
+  }
+
+  Column setBetSheet({
+    required StateSetter setDialog,
+    required String player,
+    required var top,
+  }) {
+    return Column(
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height / 16,
+          width: (MediaQuery.of(context).size.width - 60) / 5,
+          child: AnimatedContainer(
+            duration: const Duration(
+              milliseconds: 300,
+            ),
+            padding: const EdgeInsets.symmetric(
+              vertical: Sizes.size16,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(
+                Sizes.size5,
+              ),
+              color: (top == 0)
+                  ? Colors.grey.shade300
+                  : Theme.of(context).primaryColor,
+            ),
+            child: AnimatedDefaultTextStyle(
+              duration: const Duration(microseconds: 300),
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: (top == 0) ? Colors.grey.shade400 : Colors.white,
+              ),
+              child: Text(
+                (top == 0) ? "미선택" : "${top.toString()}반",
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -351,61 +497,200 @@ class _BetScreenState extends State<BetScreen> {
   }) {
     showDialog(
       context: context,
-      builder: (context) {
-        return Dialog(
-          child: Column(
-            children: [
-              Gaps.v20,
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    game,
-                    style: const TextStyle(
-                      fontSize: Sizes.size16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                player,
-                style: const TextStyle(
-                  fontSize: Sizes.size14,
-                ),
-              ),
-              Gaps.v16,
-              for (int row = 0; row < 2; row++)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      builder: (context) => StatefulBuilder(
+        builder: (
+          BuildContext context,
+          StateSetter setDialog,
+        ) {
+          return Dialog(
+            backgroundColor: Colors.white,
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    for (int classNum = 1; classNum < 5; classNum++)
-                      showTeams(
-                        player: player,
-                        classNum: classNum + (row * 4),
+                    Gaps.v10,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          game,
+                          style: const TextStyle(
+                            fontSize: Sizes.size16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      player,
+                      style: const TextStyle(
+                        fontSize: Sizes.size14,
                       ),
+                    ),
+                    Gaps.v16,
+                    for (int row = 0; row < 2; row++)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          for (int classNum = 1; classNum < 5; classNum++)
+                            showTeams(
+                              player: player,
+                              classNum: classNum + (row * 4),
+                              state: setDialog,
+                            ),
+                        ],
+                      ),
+                    Gaps.v20,
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          setBetSheet(
+                            top: top1,
+                            player: player,
+                            setDialog: setDialog,
+                          ),
+                          Gaps.h10,
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width / 2.5,
+                            child: TextFormField(
+                              onSaved: (newValue) {
+                                _bettingPoint1 = newValue.toString();
+                              },
+                              keyboardType: TextInputType.number,
+                              controller: _bettingPoint1Controller,
+                              cursorColor: Theme.of(context).primaryColor,
+                              decoration: InputDecoration(
+                                errorText: isBettingValid(_bettingPoint1),
+                                hintText: "베팅 포인트 입력",
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade400,
+                                  ),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade400,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Text(
+                            "point",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          setBetSheet(
+                            top: top2,
+                            player: player,
+                            setDialog: setDialog,
+                          ),
+                          Gaps.h10,
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width / 2.5,
+                            child: TextFormField(
+                              onSaved: (newValue) {
+                                _bettingPoint2 = newValue.toString();
+                              },
+                              keyboardType: TextInputType.number,
+                              controller: _bettingPoint2Controller,
+                              cursorColor: Theme.of(context).primaryColor,
+                              decoration: InputDecoration(
+                                errorText: isBettingValid(_bettingPoint1),
+                                hintText: "베팅 포인트 입력",
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade400,
+                                  ),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade400,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Text("point",
+                              style: TextStyle(fontWeight: FontWeight.bold))
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          setBetSheet(
+                            top: top3,
+                            player: player,
+                            setDialog: setDialog,
+                          ),
+                          Gaps.h10,
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width / 2.5,
+                            child: TextFormField(
+                              onSaved: (newValue) {
+                                _bettingPoint3 = newValue.toString();
+                              },
+                              keyboardType: TextInputType.number,
+                              controller: _bettingPoint3Controller,
+                              cursorColor: Theme.of(context).primaryColor,
+                              decoration: InputDecoration(
+                                errorText: isBettingValid(_bettingPoint3),
+                                hintText: "베팅 포인트 입력",
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade400,
+                                  ),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade400,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Text("point",
+                              style: TextStyle(fontWeight: FontWeight.bold))
+                        ],
+                      ),
+                    ),
+                    Gaps.v16,
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 15.0,
+                        right: 15.0,
+                        bottom: 15.0,
+                        top: 10,
+                      ),
+                      child: GestureDetector(
+                        // onTap: onLoginTap,
+                        child: FormButton(
+                          disabled: false,
+                          text: "베팅하기",
+                          widthSize: MediaQuery.of(context).size.width,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: 15.0,
-                  right: 15.0,
-                  bottom: 15.0,
-                  top: 10,
-                ),
-                child: GestureDetector(
-                  // onTap: onLoginTap,
-                  child: FormButton(
-                    disabled: false,
-                    text: "베팅하기",
-                    widthSize: MediaQuery.of(context).size.width,
-                  ),
-                ),
               ),
-            ],
-          ),
-        );
-      },
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -488,16 +773,19 @@ class _BetScreenState extends State<BetScreen> {
                                 ? Theme.of(context).primaryColor
                                 : Colors.grey,
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Text(
-                              isBet ? '베팅 완료' : "미참여",
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: Sizes.size14,
-                                color: Colors.white,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                isBet ? '베팅 완료' : "미참여",
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: Sizes.size14,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
                       ),

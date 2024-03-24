@@ -167,7 +167,7 @@ class _LiveSituationState extends State<LiveSituation> {
 
     var data = snapshot.value as Map<dynamic, dynamic>;
     for (var key in data.keys) {
-      if (key == 'user') {
+      if (key == 'user' || key == 'game' || key == 'team') {
         continue;
       }
       var value = data[key];
