@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_literals_to_create_immutables
+
 import 'package:firebase_database/firebase_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:survey_jys/authentication/login_screen.dart';
@@ -31,53 +33,47 @@ class _BetScreenState extends State<BetScreen> {
   bool showUserDetails = false;
   bool isLogined = false;
 
+  Map<dynamic, dynamic> gameData = {};
+  Map<dynamic, dynamic> teamData = {};
+  Map<dynamic, dynamic> betData = {};
+
   void readBetData() async {
     final reference = FirebaseDatabase.instance.ref();
-    DataSnapshot snapshot = await reference.child('game/').get();
 
+    DataSnapshot snapshot = await reference.child('game/').get();
     if (snapshot.value == null) {
       return;
     }
+    gameData = snapshot.value as Map<dynamic, dynamic>;
 
-    final data = snapshot.value as Map<dynamic, dynamic>;
-    DateFormat dateFormat = DateFormat('dd aa hh:mm', 'ko');
-
-    for (var gameName in data.keys) {
-      // var date = dateFormat.format()
+    snapshot = await reference.child('team/').get();
+    if (snapshot.value == null) {
+      return;
     }
+    teamData = snapshot.value as Map<dynamic, dynamic>;
 
-    // try {
-    //   final data = snapshot.value as Map<dynamic, dynamic>;
-    //   dodgeBallData = data["dodgeBall"];
-    //   finalData = data["final"];
-    //   if (dodgeBallData.isEmpty && finalData.isEmpty) {
-    //     return;
-    //   } else {
-    //     isCurrentData = true;
-    //   }
-    //   DBtop1 = dodgeBallData[0];
-    //   DBtop2 = dodgeBallData[1];
-    //   DBtop3 = dodgeBallData[2];
-
-    //   top1 = finalData[0];
-    //   top2 = finalData[1];
-    //   top3 = finalData[2];
-
-    //   setState(() {});
-    // } catch (e) {
-    //   return;
-    // }
+    try {
+      snapshot =
+          await reference.child('user/${widget.studentNumber}/bet').get();
+      betData = snapshot.value as Map<dynamic, dynamic>;
+    } catch (e) {
+      setState(() {});
+      return;
+    }
+    setState(() {});
+    return;
   }
 
   @override
   void initState() {
     super.initState();
-
     if (widget.studentNumber != null &&
         widget.name != null &&
         widget.point != null) {
       isLogined = true;
     }
+
+    readBetData();
   }
 
   void onScaffoldTap() {
@@ -314,103 +310,206 @@ class _BetScreenState extends State<BetScreen> {
     );
   }
 
-  GestureDetector showGames({
-    required String gameName,
+  int getWinningOdd({
     required String player,
-    required int winMultiple,
-    required int loseMultiple,
+    required var classNum,
   }) {
-    return GestureDetector(
-      // onTap: onNonMemberTap,
-      child: FractionallySizedBox(
-        widthFactor: 1,
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: Sizes.size14,
-            vertical: Sizes.size14,
+    try {
+      int win = teamData[player][classNum]['win'];
+      int lose = teamData[player][classNum]['lose'];
+
+      double winningOdd = (win / (win + lose)) * 100;
+      return winningOdd.floor();
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  Column showTeams({
+    required int classNum,
+    required String player,
+  }) {
+    return Column(
+      children: [
+        GestureDetector(
+          child: FormButton(
+            disabled: true,
+            text: '$classNum반',
+            widthSize: (MediaQuery.of(context).size.width - 60) / 5,
           ),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Colors.grey.shade300,
-              width: Sizes.size1,
-            ),
-          ),
-          child: Stack(
-            alignment: Alignment.centerLeft,
+        ),
+        Gaps.v4,
+        Text("승률 ${getWinningOdd(player: player, classNum: classNum)}%"),
+        Gaps.v12,
+      ],
+    );
+  }
+
+  void onBetModalTap({
+    required var game,
+    required var player,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          child: Column(
             children: [
+              Gaps.v20,
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        gameName,
-                        style: const TextStyle(
-                          fontSize: Sizes.size16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      Text(
-                        player,
-                        style: const TextStyle(
-                            fontSize: Sizes.size12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey),
-                        textAlign: TextAlign.start,
-                      ),
-                    ],
+                  Text(
+                    game,
+                    style: const TextStyle(
+                      fontSize: Sizes.size16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "포인트 배율",
-                        style: TextStyle(
-                          fontSize: Sizes.size16,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+                ],
+              ),
+              Text(
+                player,
+                style: const TextStyle(
+                  fontSize: Sizes.size14,
+                ),
+              ),
+              Gaps.v16,
+              for (int row = 0; row < 2; row++)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    for (int classNum = 1; classNum < 5; classNum++)
+                      showTeams(
+                        player: player,
+                        classNum: classNum + (row * 4),
                       ),
-                      Row(
+                  ],
+                ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 15.0,
+                  right: 15.0,
+                  bottom: 15.0,
+                  top: 10,
+                ),
+                child: GestureDetector(
+                  // onTap: onLoginTap,
+                  child: FormButton(
+                    disabled: false,
+                    text: "베팅하기",
+                    widthSize: MediaQuery.of(context).size.width,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Column showGames({
+    required var game,
+    required var player,
+  }) {
+    print("game: $game\nplayer: $player");
+
+    bool isBet = false;
+    try {
+      if (betData[game][player] != null) {
+        isBet = true;
+      } else {
+        isBet = false;
+      }
+    } catch (e) {
+      isBet = false;
+    }
+
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () => onBetModalTap(
+            game: game,
+            player: player,
+          ),
+          child: FractionallySizedBox(
+            widthFactor: 1,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: Sizes.size14,
+                vertical: Sizes.size14,
+              ),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.grey.shade300,
+                  width: Sizes.size1,
+                ),
+              ),
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "승리 $winMultiple",
+                            game,
                             style: const TextStyle(
                               fontSize: Sizes.size16,
                               fontWeight: FontWeight.w600,
-                              color: Colors.blue,
                             ),
-                            textAlign: TextAlign.start,
-                          ),
-                          const Text(
-                            " : ",
-                            style: TextStyle(
-                                fontSize: Sizes.size16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black),
-                            textAlign: TextAlign.start,
+                            textAlign: TextAlign.center,
                           ),
                           Text(
-                            "$loseMultiple 패배",
+                            player,
                             style: const TextStyle(
-                              fontSize: Sizes.size16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.red,
-                            ),
+                                fontSize: Sizes.size12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey),
                             textAlign: TextAlign.start,
                           ),
                         ],
                       ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height / 20,
+                        width: MediaQuery.of(context).size.width / 4,
+                        child: AnimatedContainer(
+                          duration: const Duration(
+                            milliseconds: 300,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                              Sizes.size5,
+                            ),
+                            color: isBet
+                                ? Theme.of(context).primaryColor
+                                : Colors.grey,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Text(
+                              isBet ? '베팅 완료' : "미참여",
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: Sizes.size14,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
-                  )
+                  ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
-      ),
+        Gaps.v10,
+      ],
     );
   }
 
@@ -488,12 +587,9 @@ class _BetScreenState extends State<BetScreen> {
                     ),
                     child: Column(
                       children: [
-                        showGames(
-                          gameName: "판 뒤집기",
-                          player: "1학년 전체",
-                          winMultiple: 10,
-                          loseMultiple: 1,
-                        ),
+                        for (var game in gameData.keys)
+                          for (var player in gameData[game].keys)
+                            showGames(game: game, player: player),
                       ],
                     ),
                   ),

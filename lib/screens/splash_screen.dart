@@ -42,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return AnimatedSplashScreen(
-      splash: 'images/JYS-Survey_logo.png',
+      splash: 'assets/images/JYS-Survey_logo.png',
       splashTransition: SplashTransition.fadeTransition,
       backgroundColor: Colors.white,
       splashIconSize: Sizes.size36 * 5,
