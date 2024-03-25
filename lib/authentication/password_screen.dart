@@ -142,7 +142,6 @@ class _PasswordScreenState extends State<PasswordScreen> {
                       ),
                     ],
                   ),
-                  // errorText: "",
                   hintText: "비밀번호",
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(

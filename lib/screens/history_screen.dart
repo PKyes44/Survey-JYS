@@ -8,6 +8,7 @@ import 'package:survey_jys/authentication/login_screen.dart';
 import 'package:survey_jys/authentication/sign_up_screen.dart';
 import 'package:survey_jys/constants/gaps.dart';
 import 'package:survey_jys/constants/sizes.dart';
+import 'package:survey_jys/screens/bet_screen.dart';
 import 'package:survey_jys/screens/history_screen.dart';
 import 'package:survey_jys/screens/live_situation.dart';
 import 'package:survey_jys/screens/rank_screen.dart';
@@ -18,11 +19,11 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
-class BetScreen extends StatefulWidget {
+class BetHistoryScreen extends StatefulWidget {
   String? studentNumber;
   String? name;
   String? point;
-  BetScreen({
+  BetHistoryScreen({
     super.key,
     required this.studentNumber,
     required this.name,
@@ -30,16 +31,10 @@ class BetScreen extends StatefulWidget {
   });
 
   @override
-  State<BetScreen> createState() => _BetScreenState();
+  State<BetHistoryScreen> createState() => _BetHistoryScreenState();
 }
 
-class _BetScreenState extends State<BetScreen> {
-  final TextEditingController _bettingPoint1Controller =
-      TextEditingController();
-  final TextEditingController _bettingPoint2Controller =
-      TextEditingController();
-  final TextEditingController _bettingPoint3Controller =
-      TextEditingController();
+class _BetHistoryScreenState extends State<BetHistoryScreen> {
   bool showUserDetails = false;
   bool isLogined = false;
 
@@ -47,17 +42,8 @@ class _BetScreenState extends State<BetScreen> {
   Map<dynamic, dynamic> teamData = {};
   Map<dynamic, dynamic> betData = {};
 
-  int _bettingPoint1 = 0;
-  int _bettingPoint2 = 0;
-  int _bettingPoint3 = 0;
-
-  var top1 = 0;
-  var top2 = 0;
-  var top3 = 0;
   List<int> topList = [];
-
-  bool isBetPointError = false;
-  bool isBetError = false;
+  List<int> betPointList = [];
 
   void readBetData() async {
     final reference = FirebaseDatabase.instance.ref();
@@ -68,22 +54,15 @@ class _BetScreenState extends State<BetScreen> {
     }
     gameData = snapshot.value as Map<dynamic, dynamic>;
 
-    snapshot = await reference.child('team/').get();
-    if (snapshot.value == null) {
-      return;
-    }
-    teamData = snapshot.value as Map<dynamic, dynamic>;
-    setState(() {});
-
     try {
       snapshot =
           await reference.child('user/${widget.studentNumber}/bet').get();
       betData = snapshot.value as Map<dynamic, dynamic>;
-      setState(() {});
     } catch (e) {
       setState(() {});
       return;
     }
+    setState(() {});
     return;
   }
 
@@ -105,33 +84,7 @@ class _BetScreenState extends State<BetScreen> {
         widget.point != null) {
       isLogined = true;
     }
-
     readBetData();
-
-    _bettingPoint1Controller.addListener(() {
-      if (_bettingPoint1Controller.text.isEmpty) {
-        return;
-      }
-      setState(() {
-        _bettingPoint1 = int.parse(_bettingPoint1Controller.text);
-      });
-    });
-    _bettingPoint2Controller.addListener(() {
-      if (_bettingPoint2Controller.text.isEmpty) {
-        return;
-      }
-      setState(() {
-        _bettingPoint2 = int.parse(_bettingPoint2Controller.text);
-      });
-    });
-    _bettingPoint3Controller.addListener(() {
-      if (_bettingPoint3Controller.text.isEmpty) {
-        return;
-      }
-      setState(() {
-        _bettingPoint3 = int.parse(_bettingPoint3Controller.text);
-      });
-    });
   }
 
   void onScaffoldTap() {
@@ -202,11 +155,11 @@ class _BetScreenState extends State<BetScreen> {
     );
   }
 
-  void onRankTap() {
+  void onBetTap() {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
-        builder: (BuildContext context) => RankScreen(
+        builder: (BuildContext context) => BetScreen(
           studentNumber: widget.studentNumber,
           name: widget.name,
           point: widget.point,
@@ -216,11 +169,11 @@ class _BetScreenState extends State<BetScreen> {
     );
   }
 
-  void onBetTap() {
+  void onRankTap() {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
-        builder: (BuildContext context) => BetScreen(
+        builder: (BuildContext context) => RankScreen(
           studentNumber: widget.studentNumber,
           name: widget.name,
           point: widget.point,
@@ -381,7 +334,7 @@ class _BetScreenState extends State<BetScreen> {
               color: isLogined ? Colors.black : Colors.grey,
             ),
           ),
-          onTap: isLogined ? onBetTap : onLockedTap,
+          onTap: isLogined ? onRankTap : onLockedTap,
         ),
       ],
     );
@@ -411,58 +364,14 @@ class _BetScreenState extends State<BetScreen> {
     );
   }
 
-  int getWinningOdd({
-    required String player,
-    required var classNum,
-  }) {
-    try {
-      int win = teamData[player][classNum]['win'];
-      int lose = teamData[player][classNum]['lose'];
-
-      double winningOdd = (win / (win + lose)) * 100;
-      return winningOdd.floor();
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  void clickedClass({
-    required var player,
-    required var classNum,
-    required StateSetter setDialog,
-  }) {
-    if (topList.contains(classNum)) {
-      print("ClassNum: $classNum");
-      print(topList);
-      if (top3 == classNum) {
-        top3 = 0;
-      } else if (top2 == classNum) {
-        top2 = 0;
-      } else if (top1 == classNum) {
-        top1 = 0;
-      }
-    } else if (top1 == 0 || (top2 != 0 && top3 != 0)) {
-      top1 = classNum;
-      print("top1: $top1");
-    } else if (top2 == 0 || (top3 != 0 && top1 != 0)) {
-      top2 = classNum;
-      print("top2: $top2");
-    } else if (top3 == 0 || (top1 != 0 && top3 != 0)) {
-      top3 = classNum;
-      print("top2: $top3");
-    }
-    topList = [top1, top2, top3];
-    setDialog(() {});
-    print("top1 = $top1\ntop2 = $top2\ntop3 = $top3");
-  }
-
   Column showTeams({
     required StateSetter state,
+    required String game,
     required int classNum,
     required String player,
   }) {
     bool disabled = true;
-    if (top1 == classNum || top2 == classNum || top3 == classNum) {
+    if (betData[game][player].containsKey(classNum.toString())) {
       disabled = false;
     } else {
       disabled = true;
@@ -470,94 +379,7 @@ class _BetScreenState extends State<BetScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GestureDetector(
-          onTap: () => clickedClass(
-            classNum: classNum,
-            player: player,
-            setDialog: state,
-          ),
-          child: SizedBox(
-            width: (MediaQuery.of(context).size.width - 60) / 5,
-            child: AnimatedContainer(
-              duration: const Duration(
-                milliseconds: 300,
-              ),
-              padding: const EdgeInsets.symmetric(
-                vertical: Sizes.size16,
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(
-                  Sizes.size5,
-                ),
-                color: disabled
-                    ? Colors.grey.shade300
-                    : Theme.of(context).primaryColor,
-              ),
-              child: AnimatedDefaultTextStyle(
-                duration: const Duration(microseconds: 300),
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: disabled ? Colors.grey.shade400 : Colors.white,
-                ),
-                child: Text(
-                  '$classNum반',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          ),
-        ),
-        Gaps.v4,
-        Text(
-          "${(teamData[player][classNum]['lose'] + teamData[player][classNum]['win'])}전 ${teamData[player][classNum]['win']}승 ${teamData[player][classNum]['lose']}패",
-          textAlign: TextAlign.start,
-          style: const TextStyle(
-            fontWeight: FontWeight.w300,
-            fontSize: Sizes.size12,
-          ),
-        ),
-        Gaps.v4,
-        Text(
-          "승률 ${getWinningOdd(player: player, classNum: classNum)}%",
-          textAlign: TextAlign.start,
-          style: const TextStyle(
-            fontWeight: FontWeight.w300,
-            fontSize: Sizes.size12,
-          ),
-        ),
-        Gaps.v16,
-      ],
-    );
-  }
-
-  bool bettingPointValid() {
-    if (_bettingPoint1 + _bettingPoint2 + _bettingPoint3 >
-        int.parse(widget.point!)) {
-      return false;
-    }
-    return true;
-  }
-
-  String? isBettingValid(int value) {
-    if (_bettingPoint1 + _bettingPoint2 + _bettingPoint3 >
-        int.parse(widget.point!)) {
-      if (value == 0) {
-        return null;
-      }
-      return "현재 가진 포인트를 초과할 수 없습니다";
-    }
-    return null;
-  }
-
-  Column setBetSheet({
-    required StateSetter setDialog,
-    required String player,
-    required var top,
-  }) {
-    return Column(
-      children: [
         SizedBox(
-          height: MediaQuery.of(context).size.height / 16,
           width: (MediaQuery.of(context).size.width - 60) / 5,
           child: AnimatedContainer(
             duration: const Duration(
@@ -570,7 +392,7 @@ class _BetScreenState extends State<BetScreen> {
               borderRadius: BorderRadius.circular(
                 Sizes.size5,
               ),
-              color: (top == 0)
+              color: disabled
                   ? Colors.grey.shade300
                   : Theme.of(context).primaryColor,
             ),
@@ -578,14 +400,71 @@ class _BetScreenState extends State<BetScreen> {
               duration: const Duration(microseconds: 300),
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: (top == 0) ? Colors.grey.shade400 : Colors.white,
+                color: disabled ? Colors.grey.shade400 : Colors.white,
               ),
               child: Text(
-                (top == 0) ? "미선택" : "${top.toString()}반",
+                '$classNum반',
                 textAlign: TextAlign.center,
               ),
             ),
           ),
+        ),
+        Gaps.v16,
+      ],
+    );
+  }
+
+  Column setBetSheet({
+    required StateSetter setDialog,
+    required String player,
+    required var top,
+    required int point,
+  }) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height / 16,
+              width: (MediaQuery.of(context).size.width - 60) / 5,
+              child: AnimatedContainer(
+                duration: const Duration(
+                  milliseconds: 300,
+                ),
+                padding: const EdgeInsets.symmetric(
+                  vertical: Sizes.size16,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(
+                    Sizes.size5,
+                  ),
+                  color: (top == null)
+                      ? Colors.grey.shade300
+                      : Theme.of(context).primaryColor,
+                ),
+                child: AnimatedDefaultTextStyle(
+                  duration: const Duration(microseconds: 300),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: (top == null) ? Colors.grey.shade400 : Colors.white,
+                  ),
+                  child: Text(
+                    (top == null) ? "미선택" : "${top.toString()}반",
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ),
+            Gaps.h10,
+            Text(
+              "$point Point",
+              style: const TextStyle(
+                fontSize: Sizes.size16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -595,11 +474,14 @@ class _BetScreenState extends State<BetScreen> {
     required var game,
     required var player,
   }) {
-    _bettingPoint1 = 0;
-    _bettingPoint2 = 0;
-    _bettingPoint3 = 0;
-
-    setState(() {});
+    for (var betClass in betData[game][player].keys) {
+      if (betData[game][player][betClass] <= 0) {
+        continue;
+      } else {
+        topList.add(int.parse(betClass.substring(0, 1)));
+        betPointList.add(betData[game][player][betClass]);
+      }
+    }
 
     showDialog(
       barrierDismissible: false,
@@ -654,6 +536,7 @@ class _BetScreenState extends State<BetScreen> {
                           for (int classNum = 1; classNum < 5; classNum++)
                             showTeams(
                               player: player,
+                              game: game,
                               classNum: classNum + (row * 4),
                               state: setDialog,
                             ),
@@ -664,52 +547,10 @@ class _BetScreenState extends State<BetScreen> {
                       child: Row(
                         children: [
                           setBetSheet(
-                            top: top1,
+                            top: topList[0],
+                            point: betPointList[0],
                             player: player,
                             setDialog: setDialog,
-                          ),
-                          Gaps.h10,
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width / 2,
-                            child: TextFormField(
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              onSaved: (newValue) {
-                                if (newValue == null || newValue.isEmpty) {
-                                  return;
-                                }
-                                _bettingPoint1 = int.parse(newValue);
-                                setDialog(() {});
-                                setState(() {});
-                              },
-                              validator: (value) {
-                                if (int.parse(value!) >
-                                    int.parse(widget.point!)) {
-                                  return "현재 가진 포인트를 초과할 수 없습니다";
-                                }
-                                return null;
-                              },
-                              keyboardType: TextInputType.number,
-                              controller: _bettingPoint1Controller,
-                              cursorColor: Theme.of(context).primaryColor,
-                              decoration: InputDecoration(
-                                errorText: isBettingValid(
-                                  _bettingPoint1,
-                                ),
-                                hintText: "베팅 포인트 입력",
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.grey.shade400,
-                                  ),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.grey.shade400,
-                                  ),
-                                ),
-                              ),
-                            ),
                           ),
                         ],
                       ),
@@ -718,54 +559,17 @@ class _BetScreenState extends State<BetScreen> {
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
                         children: [
-                          setBetSheet(
-                            top: top2,
-                            player: player,
-                            setDialog: setDialog,
-                          ),
-                          Gaps.h10,
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width / 2,
-                            child: TextFormField(
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              onSaved: (newValue) {
-                                if (newValue == null || newValue.isEmpty) {
-                                  return;
-                                }
-                                _bettingPoint1 = int.parse(newValue);
-                                setDialog(() {});
-                                setState(() {});
-                              },
-                              validator: (value) {
-                                if (int.parse(value!) >
-                                    int.parse(widget.point!)) {
-                                  return "현재 가진 포인트를 초과할 수 없습니다";
-                                }
-                                return null;
-                              },
-                              keyboardType: TextInputType.number,
-                              controller: _bettingPoint2Controller,
-                              cursorColor: Theme.of(context).primaryColor,
-                              decoration: InputDecoration(
-                                errorText: isBettingValid(
-                                  _bettingPoint2,
+                          (topList.length >= 2)
+                              ? setBetSheet(
+                                  top: topList[1],
+                                  point: betPointList[1],
+                                  player: player,
+                                  setDialog: setDialog,
+                                )
+                              : const SizedBox(
+                                  width: 0,
+                                  height: 0,
                                 ),
-                                hintText: "베팅 포인트 입력",
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.grey.shade400,
-                                  ),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.grey.shade400,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -773,84 +577,27 @@ class _BetScreenState extends State<BetScreen> {
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
                         children: [
-                          setBetSheet(
-                            top: top3,
-                            player: player,
-                            setDialog: setDialog,
-                          ),
-                          Gaps.h10,
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width / 2,
-                            child: TextFormField(
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              onSaved: (newValue) {
-                                if (newValue == null || newValue.isEmpty) {
-                                  return;
-                                }
-                                _bettingPoint1 = int.parse(newValue);
-                                setDialog(() {});
-                                setState(() {});
-                              },
-                              validator: (value) {
-                                if (int.parse(value!) >
-                                    int.parse(widget.point!)) {
-                                  return "현재 가진 포인트를 초과할 수 없습니다";
-                                }
-                                return null;
-                              },
-                              keyboardType: TextInputType.number,
-                              controller: _bettingPoint3Controller,
-                              cursorColor: Theme.of(context).primaryColor,
-                              decoration: InputDecoration(
-                                errorText: isBettingValid(
-                                  _bettingPoint3,
+                          (topList.length >= 3)
+                              ? setBetSheet(
+                                  top: topList[2],
+                                  point: betPointList[2],
+                                  player: player,
+                                  setDialog: setDialog,
+                                )
+                              : const SizedBox(
+                                  width: 0,
+                                  height: 0,
                                 ),
-                                hintText: "베팅 포인트 입력",
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.grey.shade400,
-                                  ),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.grey.shade400,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
-                    Gaps.v10,
-                    Text("현재 포인트 : ${widget.point}"),
                     Text(
-                      "베팅 후 잔여 포인트 : ${int.parse(widget.point!) - _bettingPoint1 - _bettingPoint2 - _bettingPoint3}",
+                      "현재 포인트 : ${widget.point}",
+                      style: const TextStyle(
+                        fontSize: Sizes.size16,
+                      ),
                     ),
-                    isBetError
-                        ? Text(
-                            '※ 최소 한 팀 이상 선택해주세요',
-                            style: TextStyle(
-                              color: Colors.red.shade800,
-                            ),
-                          )
-                        : const SizedBox(
-                            width: 0,
-                            height: 0,
-                          ),
-                    isBetPointError
-                        ? Text(
-                            '※ 선택한 팀에 포인트를 베팅해주세요',
-                            style: TextStyle(
-                              color: Colors.red.shade800,
-                            ),
-                          )
-                        : const SizedBox(
-                            width: 0,
-                            height: 0,
-                          ),
+                    Gaps.v16,
                     Padding(
                       padding: const EdgeInsets.only(
                         left: 15.0,
@@ -858,67 +605,18 @@ class _BetScreenState extends State<BetScreen> {
                         bottom: 15.0,
                         top: 10,
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              top1 = 0;
-                              top2 = 0;
-                              top3 = 0;
-                              topList = [];
-                              _bettingPoint1 = 0;
-                              _bettingPoint2 = 0;
-                              _bettingPoint3 = 0;
-                              _bettingPoint1Controller.text = "";
-                              _bettingPoint2Controller.text = "";
-                              _bettingPoint3Controller.text = "";
-                              isBetError = false;
-                              isBetPointError = false;
-                              Navigator.of(context).pop();
-                            },
-                            child: SizedBox(
-                              width: MediaQuery.of(context).size.width / 3.5,
-                              child: AnimatedContainer(
-                                duration: const Duration(
-                                  milliseconds: 300,
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: Sizes.size16,
-                                ),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(
-                                      Sizes.size5,
-                                    ),
-                                    color: Colors.grey.shade300),
-                                child: AnimatedDefaultTextStyle(
-                                  duration: const Duration(microseconds: 300),
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey.shade400,
-                                  ),
-                                  child: const Text(
-                                    "취소",
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () => onBettingTap(
-                              setDialog: setDialog,
-                              game: game,
-                              player: player,
-                            ),
-                            child: FormButton(
-                              disabled: false,
-                              text: "베팅하기",
-                              widthSize:
-                                  MediaQuery.of(context).size.width / 3.5,
-                            ),
-                          ),
-                        ],
+                      child: GestureDetector(
+                        onTap: () {
+                          topList = [];
+                          betPointList = [];
+                          setState(() {});
+                          Navigator.of(context).pop();
+                        },
+                        child: FormButton(
+                          disabled: false,
+                          text: "확인",
+                          widthSize: MediaQuery.of(context).size.width,
+                        ),
                       ),
                     ),
                   ],
@@ -928,104 +626,6 @@ class _BetScreenState extends State<BetScreen> {
           );
         },
       ),
-    );
-  }
-
-  void onBettingTap({
-    required var game,
-    required var player,
-    required StateSetter setDialog,
-  }) async {
-    if ((top1 == 0 && _bettingPoint1 == 0) &&
-        (top2 == 0 && _bettingPoint2 == 0) &&
-        (top3 == 0 && _bettingPoint3 == 0)) {
-      isBetError = true;
-      setState(() {});
-      setDialog(() {});
-      return;
-    } else {
-      isBetError = false;
-      setState(() {});
-      setDialog(() {});
-    }
-
-    if ((top1 != 0 && _bettingPoint1 == 0) ||
-        (top2 != 0 && _bettingPoint2 == 0) ||
-        (top3 != 0 && _bettingPoint3 == 0)) {
-      isBetPointError = true;
-      setDialog(() {});
-      setState(() {});
-      return;
-    } else {
-      isBetPointError = false;
-      setDialog(() {});
-      setState(() {});
-    }
-    if (!bettingPointValid()) {
-      return;
-    }
-
-    var playerInner = {
-      "$top1반": _bettingPoint1,
-      "$top2반": _bettingPoint2,
-      "$top3반": _bettingPoint3,
-    };
-
-    FirebaseDatabase ref = FirebaseDatabase.instance;
-    await ref
-        .ref()
-        .child('user/${widget.studentNumber}/bet/$game/$player')
-        .set(playerInner);
-
-    await ref.ref().child('user/${widget.studentNumber}/point').set(
-        int.parse(widget.point!) -
-            _bettingPoint1 -
-            _bettingPoint2 -
-            _bettingPoint3);
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.remove('point');
-
-    prefs.setString(
-        'point',
-        (int.parse(widget.point!) -
-                _bettingPoint1 -
-                _bettingPoint2 -
-                _bettingPoint3)
-            .toString());
-
-    print((int.parse(widget.point!) -
-            _bettingPoint1 -
-            _bettingPoint2 -
-            _bettingPoint3)
-        .toString());
-
-    top1 = 0;
-    top2 = 0;
-    top3 = 0;
-    topList = [];
-    _bettingPoint1 = 0;
-    _bettingPoint2 = 0;
-    _bettingPoint3 = 0;
-    _bettingPoint1Controller.text = "";
-    _bettingPoint2Controller.text = "";
-    _bettingPoint3Controller.text = "";
-    isBetError = false;
-    isBetPointError = false;
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (context) => BetScreen(
-          studentNumber: widget.studentNumber,
-          name: widget.name,
-          point: (int.parse(widget.point!) -
-                  _bettingPoint1 -
-                  _bettingPoint2 -
-                  _bettingPoint3)
-              .toString(),
-        ),
-      ),
-      (route) => false,
     );
   }
 
@@ -1050,11 +650,11 @@ class _BetScreenState extends State<BetScreen> {
       children: [
         GestureDetector(
           onTap: isBet
-              ? () {}
-              : () => onBetModalTap(
+              ? () => onBetModalTap(
                     game: game,
                     player: player,
-                  ),
+                  )
+              : () {},
           child: FractionallySizedBox(
             widthFactor: 1,
             child: Container(
@@ -1114,7 +714,7 @@ class _BetScreenState extends State<BetScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                isBet ? '베팅 완료' : "미참여",
+                                isBet ? '전적 보기' : "미참여",
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -1196,7 +796,7 @@ class _BetScreenState extends State<BetScreen> {
           body: RefreshIndicator(
             onRefresh: () async {
               readBetData();
-
+              
               getPoint();
               setState(() {});
             },

@@ -5,6 +5,7 @@ import 'package:survey_jys/authentication/sign_up_screen.dart';
 import 'package:survey_jys/constants/gaps.dart';
 import 'package:survey_jys/constants/sizes.dart';
 import 'package:survey_jys/screens/bet_screen.dart';
+import 'package:survey_jys/screens/history_screen.dart';
 import 'package:survey_jys/screens/live_situation.dart';
 import 'package:survey_jys/screens/rank_screen.dart';
 import 'package:survey_jys/screens/vote_screen.dart';
@@ -47,11 +48,20 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
 
   bool isLogined = false;
 
+  void getPoint() async {
+    final reference = FirebaseDatabase.instance.ref();
+
+    DataSnapshot snapshot =
+        await reference.child('user/${widget.studentNumber}/point').get();
+    widget.point = snapshot.value.toString();
+    setState(() {});
+  }
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 
+    getPoint();
     if (widget.studentNumber != null) {
       tec.text = widget.studentNumber.toString();
     }
@@ -165,6 +175,20 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
       context,
       MaterialPageRoute(
         builder: (BuildContext context) => const SignUpScreen(),
+      ),
+      (route) => false,
+    );
+  }
+
+  void onBetHistoryTap() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => BetHistoryScreen(
+          studentNumber: widget.studentNumber,
+          name: widget.name,
+          point: widget.point,
+        ),
       ),
       (route) => false,
     );
@@ -308,6 +332,21 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
           onTap: isLogined ? onBetTap : onLockedTap,
         ),
         ListTile(
+          leading: const FaIcon(FontAwesomeIcons.folderOpen),
+          trailing: isLogined
+              ? const Icon(Icons.navigate_next)
+              : const FaIcon(FontAwesomeIcons.lock, size: Sizes.size20),
+          iconColor: isLogined ? Theme.of(context).primaryColor : Colors.grey,
+          focusColor: Theme.of(context).primaryColor,
+          title: Text(
+            '베팅 내역 보기',
+            style: TextStyle(
+              color: isLogined ? Colors.black : Colors.grey,
+            ),
+          ),
+          onTap: isLogined ? onBetHistoryTap : onLockedTap,
+        ),
+        ListTile(
           leading: const FaIcon(FontAwesomeIcons.rankingStar),
           trailing: isLogined
               ? const Icon(Icons.navigate_next)
@@ -420,6 +459,8 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
               DBtop3 = 0;
 
               tec.text = "";
+              
+              getPoint();
               setState(() {});
             },
             child: SingleChildScrollView(
