@@ -44,14 +44,14 @@ class _BetScreenState extends State<BetScreen> {
   Map<dynamic, dynamic> teamData = {};
   Map<dynamic, dynamic> betData = {};
 
+  String? _bettingPoint1 = "0";
+  String? _bettingPoint2 = "0";
+  String? _bettingPoint3 = "0";
+
   var top1 = 0;
   var top2 = 0;
   var top3 = 0;
-  List<int> finalRank = [];
-
-  String? _bettingPoint1;
-  String? _bettingPoint2;
-  String? _bettingPoint3;
+  List<int> topList = [];
 
   void readBetData() async {
     final reference = FirebaseDatabase.instance.ref();
@@ -346,9 +346,9 @@ class _BetScreenState extends State<BetScreen> {
     required var classNum,
     required StateSetter setDialog,
   }) {
-    if (finalRank.contains(classNum)) {
+    if (topList.contains(classNum)) {
       print("ClassNum: $classNum");
-      print(finalRank);
+      print(topList);
       if (top3 == classNum) {
         top3 = 0;
       } else if (top2 == classNum) {
@@ -366,7 +366,7 @@ class _BetScreenState extends State<BetScreen> {
       top3 = classNum;
       print("top2: $top3");
     }
-    finalRank = [top1, top2, top3];
+    topList = [top1, top2, top3];
     setDialog(() {});
     print("top1 = $top1\ntop2 = $top2\ntop3 = $top3");
   }
@@ -387,7 +387,10 @@ class _BetScreenState extends State<BetScreen> {
       children: [
         GestureDetector(
           onTap: () => clickedClass(
-              classNum: classNum, player: player, setDialog: state),
+            classNum: classNum,
+            player: player,
+            setDialog: state,
+          ),
           child: SizedBox(
             width: (MediaQuery.of(context).size.width - 60) / 5,
             child: AnimatedContainer(
@@ -442,9 +445,12 @@ class _BetScreenState extends State<BetScreen> {
     );
   }
 
-  String? isBettingValid(String? bettingPoint) {
-    if (bettingPoint == null) {
-      return null;
+  String? isBettingValid() {
+    if (int.parse(_bettingPoint1!) +
+            int.parse(_bettingPoint2!) +
+            int.parse(_bettingPoint2!) >
+        int.parse(widget.point!)) {
+      return "자신의 포인트를 초과합니다";
     }
     return null;
   }
@@ -495,7 +501,12 @@ class _BetScreenState extends State<BetScreen> {
     required var game,
     required var player,
   }) {
+    _bettingPoint1 = "0";
+    _bettingPoint2 = "0";
+    _bettingPoint3 = "0";
+
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (
@@ -503,6 +514,7 @@ class _BetScreenState extends State<BetScreen> {
           StateSetter setDialog,
         ) {
           return Dialog(
+            shadowColor: Colors.white,
             backgroundColor: Colors.white,
             child: SingleChildScrollView(
               child: Padding(
@@ -517,7 +529,7 @@ class _BetScreenState extends State<BetScreen> {
                         Text(
                           game,
                           style: const TextStyle(
-                            fontSize: Sizes.size16,
+                            fontSize: Sizes.size20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -526,7 +538,7 @@ class _BetScreenState extends State<BetScreen> {
                     Text(
                       player,
                       style: const TextStyle(
-                        fontSize: Sizes.size14,
+                        fontSize: Sizes.size16,
                       ),
                     ),
                     Gaps.v16,
@@ -542,7 +554,6 @@ class _BetScreenState extends State<BetScreen> {
                             ),
                         ],
                       ),
-                    Gaps.v20,
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
@@ -554,16 +565,25 @@ class _BetScreenState extends State<BetScreen> {
                           ),
                           Gaps.h10,
                           SizedBox(
-                            width: MediaQuery.of(context).size.width / 2.5,
+                            width: MediaQuery.of(context).size.width / 2,
                             child: TextFormField(
                               onSaved: (newValue) {
                                 _bettingPoint1 = newValue.toString();
+                                setDialog(() {});
+                                setState(() {});
+                              },
+                              validator: (value) {
+                                if (int.parse(value!) >
+                                    int.parse(widget.point!)) {
+                                  return "현재 가진 포인트를 초과할 수 없습니다";
+                                }
+                                return null;
                               },
                               keyboardType: TextInputType.number,
                               controller: _bettingPoint1Controller,
                               cursorColor: Theme.of(context).primaryColor,
                               decoration: InputDecoration(
-                                errorText: isBettingValid(_bettingPoint1),
+                                errorText: isBettingValid(),
                                 hintText: "베팅 포인트 입력",
                                 enabledBorder: UnderlineInputBorder(
                                   borderSide: BorderSide(
@@ -576,12 +596,6 @@ class _BetScreenState extends State<BetScreen> {
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                          const Text(
-                            "point",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
@@ -598,16 +612,25 @@ class _BetScreenState extends State<BetScreen> {
                           ),
                           Gaps.h10,
                           SizedBox(
-                            width: MediaQuery.of(context).size.width / 2.5,
+                            width: MediaQuery.of(context).size.width / 2,
                             child: TextFormField(
                               onSaved: (newValue) {
                                 _bettingPoint2 = newValue.toString();
+                                setDialog(() {});
+                                setState(() {});
+                              },
+                              validator: (value) {
+                                if (int.parse(value!) >
+                                    int.parse(widget.point!)) {
+                                  return "현재 가진 포인트를 초과할 수 없습니다";
+                                }
+                                return null;
                               },
                               keyboardType: TextInputType.number,
                               controller: _bettingPoint2Controller,
                               cursorColor: Theme.of(context).primaryColor,
                               decoration: InputDecoration(
-                                errorText: isBettingValid(_bettingPoint1),
+                                errorText: isBettingValid(),
                                 hintText: "베팅 포인트 입력",
                                 enabledBorder: UnderlineInputBorder(
                                   borderSide: BorderSide(
@@ -622,8 +645,6 @@ class _BetScreenState extends State<BetScreen> {
                               ),
                             ),
                           ),
-                          const Text("point",
-                              style: TextStyle(fontWeight: FontWeight.bold))
                         ],
                       ),
                     ),
@@ -638,16 +659,25 @@ class _BetScreenState extends State<BetScreen> {
                           ),
                           Gaps.h10,
                           SizedBox(
-                            width: MediaQuery.of(context).size.width / 2.5,
+                            width: MediaQuery.of(context).size.width / 2,
                             child: TextFormField(
                               onSaved: (newValue) {
                                 _bettingPoint3 = newValue.toString();
+                                setDialog(() {});
+                                setState(() {});
+                              },
+                              validator: (value) {
+                                if (int.parse(value!) >
+                                    int.parse(widget.point!)) {
+                                  return "현재 가진 포인트를 초과할 수 없습니다";
+                                }
+                                return null;
                               },
                               keyboardType: TextInputType.number,
                               controller: _bettingPoint3Controller,
                               cursorColor: Theme.of(context).primaryColor,
                               decoration: InputDecoration(
-                                errorText: isBettingValid(_bettingPoint3),
+                                errorText: isBettingValid(),
                                 hintText: "베팅 포인트 입력",
                                 enabledBorder: UnderlineInputBorder(
                                   borderSide: BorderSide(
@@ -662,12 +692,15 @@ class _BetScreenState extends State<BetScreen> {
                               ),
                             ),
                           ),
-                          const Text("point",
-                              style: TextStyle(fontWeight: FontWeight.bold))
                         ],
                       ),
                     ),
-                    Gaps.v16,
+                    Gaps.v10,
+                    Text("현재 포인트 : ${widget.point}"),
+                    Text(
+                      "베팅 후 잔여 포인트 : ${int.parse(widget.point!) - int.parse(_bettingPoint1!) - int.parse(_bettingPoint2!) - int.parse(_bettingPoint3!)}",
+                    ),
+                    Gaps.v10,
                     Padding(
                       padding: const EdgeInsets.only(
                         left: 15.0,
@@ -675,13 +708,54 @@ class _BetScreenState extends State<BetScreen> {
                         bottom: 15.0,
                         top: 10,
                       ),
-                      child: GestureDetector(
-                        // onTap: onLoginTap,
-                        child: FormButton(
-                          disabled: false,
-                          text: "베팅하기",
-                          widthSize: MediaQuery.of(context).size.width,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width / 3.5,
+                              child: AnimatedContainer(
+                                duration: const Duration(
+                                  milliseconds: 300,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: Sizes.size16,
+                                ),
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(
+                                      Sizes.size5,
+                                    ),
+                                    color: Colors.grey.shade300),
+                                child: AnimatedDefaultTextStyle(
+                                  duration: const Duration(microseconds: 300),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                  child: const Text(
+                                    "취소",
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => onBettingTap(
+                              game: game,
+                              player: player,
+                            ),
+                            child: FormButton(
+                              disabled: false,
+                              text: "베팅하기",
+                              widthSize:
+                                  MediaQuery.of(context).size.width / 3.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -692,6 +766,32 @@ class _BetScreenState extends State<BetScreen> {
         },
       ),
     );
+  }
+
+  void onBettingTap({
+    required var game,
+    required var player,
+  }) async {
+    if (_bettingPoint1 == null ||
+        _bettingPoint2 == null ||
+        _bettingPoint3 == null) {
+      return;
+    }
+    if (top1 == 0 || top2 == 0 || top3 == 0 || topList.isEmpty) {
+      return;
+    }
+
+    var playerInner = {
+      top1: _bettingPoint1,
+      top2: _bettingPoint2,
+      top3: _bettingPoint3,
+    };
+
+    FirebaseDatabase ref = FirebaseDatabase.instance;
+    await ref
+        .ref()
+        .child('user/${widget.studentNumber}/bet/$game/$player')
+        .set(playerInner);
   }
 
   Column showGames({
@@ -858,6 +958,7 @@ class _BetScreenState extends State<BetScreen> {
           ),
           body: RefreshIndicator(
             onRefresh: () async {
+              readBetData();
               setState(() {});
             },
             child: SingleChildScrollView(
