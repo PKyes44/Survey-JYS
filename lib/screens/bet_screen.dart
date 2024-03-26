@@ -318,7 +318,12 @@ class _BetScreenState extends State<BetScreen> {
           leading: const FaIcon(FontAwesomeIcons.checkToSlot),
           iconColor: Theme.of(context).primaryColor,
           focusColor: Theme.of(context).primaryColor,
-          title: const Text('BIG이벤트 투표하기'),
+          title: const Text(
+            'BIG이벤트 투표하기',
+            style: TextStyle(
+              fontFamily: 'NanumSquare',
+            ),
+          ),
           onTap: onVoteTap,
           trailing: const Icon(Icons.navigate_next),
         ),
@@ -326,7 +331,12 @@ class _BetScreenState extends State<BetScreen> {
           leading: const FaIcon(FontAwesomeIcons.listCheck),
           iconColor: Theme.of(context).primaryColor,
           focusColor: Theme.of(context).primaryColor,
-          title: const Text('BIG이벤트 투표 확인'),
+          title: const Text(
+            'BIG이벤트 투표 확인',
+            style: TextStyle(
+              fontFamily: 'NanumSquare',
+            ),
+          ),
           onTap: onVoteCheckTap,
           trailing: const Icon(Icons.navigate_next),
         ),
@@ -334,7 +344,12 @@ class _BetScreenState extends State<BetScreen> {
           leading: const FaIcon(FontAwesomeIcons.satellite),
           iconColor: Theme.of(context).primaryColor,
           focusColor: Theme.of(context).primaryColor,
-          title: const Text('BIG이벤트 투표 현황'),
+          title: const Text(
+            'BIG이벤트 투표 현황',
+            style: TextStyle(
+              fontFamily: 'NanumSquare',
+            ),
+          ),
           onTap: onLiveTap,
           trailing: const Icon(Icons.navigate_next),
         ),
@@ -349,6 +364,7 @@ class _BetScreenState extends State<BetScreen> {
             '세부종목 베팅하기',
             style: TextStyle(
               color: isLogined ? Colors.black : Colors.grey,
+              fontFamily: 'NanumSquare',
             ),
           ),
           onTap: isLogined ? onBetTap : onLockedTap,
@@ -364,6 +380,7 @@ class _BetScreenState extends State<BetScreen> {
             '베팅 내역 보기',
             style: TextStyle(
               color: isLogined ? Colors.black : Colors.grey,
+              fontFamily: 'NanumSquare',
             ),
           ),
           onTap: isLogined ? onBetHistoryTap : onLockedTap,
@@ -379,9 +396,10 @@ class _BetScreenState extends State<BetScreen> {
             '포인트 랭킹 현황',
             style: TextStyle(
               color: isLogined ? Colors.black : Colors.grey,
+              fontFamily: 'NanumSquare',
             ),
           ),
-          onTap: isLogined ? onBetTap : onLockedTap,
+          onTap: isLogined ? onRankTap : onLockedTap,
         ),
       ],
     );
@@ -1146,10 +1164,11 @@ class _BetScreenState extends State<BetScreen> {
         child: Scaffold(
           appBar: AppBar(
             title: const Text(
-              "장영실고등학교 체육대회 승자예측",
+              "세부종목 베팅",
               style: TextStyle(
                 fontSize: Sizes.size20,
                 fontWeight: FontWeight.w500,
+                fontFamily: 'JalnanGothic',
               ),
             ),
             centerTitle: true,
