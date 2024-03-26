@@ -69,6 +69,9 @@ flutter:
   assets:
     - assets/images/JYS-Survey_logo.png
     - assets/images/profile.png
+    - assets/images/1stMedal.png
+    - assets/images/2ndMedal.png
+    - assets/images/3rdMedal.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
