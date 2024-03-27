@@ -41,9 +41,14 @@ class _BetHistoryScreenState extends State<BetHistoryScreen> {
   Map<dynamic, dynamic> gameData = {};
   Map<dynamic, dynamic> teamData = {};
   Map<dynamic, dynamic> betData = {};
+  Map<dynamic, dynamic> isGameOverData = {};
 
   List<int> topList = [];
   List<int> betPointList = [];
+
+  int noDataCount = 0;
+
+  bool isGameOver = false;
 
   void readBetData() async {
     final reference = FirebaseDatabase.instance.ref();
@@ -85,6 +90,14 @@ class _BetHistoryScreenState extends State<BetHistoryScreen> {
       isLogined = true;
     }
     readBetData();
+
+    DatabaseReference starCountRef =
+        FirebaseDatabase.instance.ref('isGameOver/');
+    starCountRef.onValue.listen((DatabaseEvent event) {
+      final data = event.snapshot.value;
+      isGameOverData = data as Map<dynamic, dynamic>;
+      setState(() {});
+    });
   }
 
   void onScaffoldTap() {
@@ -664,96 +677,116 @@ class _BetHistoryScreenState extends State<BetHistoryScreen> {
       isBet = false;
     }
 
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: isBet
-              ? () => onBetModalTap(
-                    game: game,
-                    player: player,
-                  )
-              : () {},
-          child: FractionallySizedBox(
-            widthFactor: 1,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: Sizes.size14,
-                vertical: Sizes.size14,
-              ),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.grey.shade300,
-                  width: Sizes.size1,
+    try {
+      if (isGameOverData[game][player]['isOver'] == true) {
+        isGameOver = true;
+      } else {
+        isGameOver = false;
+      }
+    } catch (e) {
+      isGameOver = false;
+    }
+
+    if (isBet) {
+      noDataCount = 1;
+      return Column(
+        children: [
+          GestureDetector(
+            onTap: isBet
+                ? () => onBetModalTap(
+                      game: game,
+                      player: player,
+                    )
+                : () {},
+            child: FractionallySizedBox(
+              widthFactor: 1,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Sizes.size14,
+                  vertical: Sizes.size14,
                 ),
-              ),
-              child: Stack(
-                alignment: Alignment.centerLeft,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            game,
-                            style: const TextStyle(
-                              fontSize: Sizes.size16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          Text(
-                            player,
-                            style: const TextStyle(
-                                fontSize: Sizes.size12,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.grey.shade300,
+                    width: Sizes.size1,
+                  ),
+                ),
+                child: Stack(
+                  alignment: Alignment.centerLeft,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              game,
+                              style: const TextStyle(
+                                fontSize: Sizes.size16,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.grey),
-                            textAlign: TextAlign.start,
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height / 20,
-                        width: MediaQuery.of(context).size.width / 4,
-                        child: AnimatedContainer(
-                          duration: const Duration(
-                            milliseconds: 300,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                              Sizes.size5,
-                            ),
-                            color: isBet
-                                ? Theme.of(context).primaryColor
-                                : Colors.grey,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                isBet ? '전적 보기' : "미참여",
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: Sizes.size14,
-                                  color: Colors.white,
-                                ),
                               ),
-                            ],
+                              textAlign: TextAlign.center,
+                            ),
+                            Text(
+                              player,
+                              style: const TextStyle(
+                                  fontSize: Sizes.size12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey),
+                              textAlign: TextAlign.start,
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height / 20,
+                          width: MediaQuery.of(context).size.width / 4,
+                          child: AnimatedContainer(
+                            duration: const Duration(
+                              milliseconds: 300,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(
+                                Sizes.size5,
+                              ),
+                              color: isGameOver
+                                  ? Colors.black
+                                  : isBet
+                                      ? Theme.of(context).primaryColor
+                                      : Colors.grey,
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  isGameOver
+                                      ? "결과 보기"
+                                      : isBet
+                                          ? '내역 보기'
+                                          : "미참여",
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: Sizes.size14,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-        Gaps.v10,
-      ],
-    );
+          Gaps.v10,
+        ],
+      );
+    }
+    return const Column();
   }
 
   @override
@@ -816,7 +849,7 @@ class _BetHistoryScreenState extends State<BetHistoryScreen> {
           body: RefreshIndicator(
             onRefresh: () async {
               readBetData();
-
+              noDataCount = 0;
               getPoint();
               setState(() {});
             },
@@ -833,6 +866,11 @@ class _BetHistoryScreenState extends State<BetHistoryScreen> {
                         for (var game in gameData.keys)
                           for (var player in gameData[game].keys)
                             showGames(game: game, player: player),
+                        if (noDataCount == 0)
+                          const Align(
+                            alignment: Alignment.center,
+                            child: Text("데이터가 없습니다"),
+                          ),
                       ],
                     ),
                   ),

@@ -46,6 +46,7 @@ class _BetScreenState extends State<BetScreen> {
   Map<dynamic, dynamic> gameData = {};
   Map<dynamic, dynamic> teamData = {};
   Map<dynamic, dynamic> betData = {};
+  Map<dynamic, dynamic> isGameOverData = {};
 
   int _bettingPoint1 = 0;
   int _bettingPoint2 = 0;
@@ -58,6 +59,7 @@ class _BetScreenState extends State<BetScreen> {
 
   bool isBetPointError = false;
   bool isBetError = false;
+  bool isGameOver = false;
 
   void readBetData() async {
     final reference = FirebaseDatabase.instance.ref();
@@ -107,6 +109,29 @@ class _BetScreenState extends State<BetScreen> {
     }
 
     readBetData();
+
+    DatabaseReference starCountRef =
+        FirebaseDatabase.instance.ref('isGameOver/');
+    starCountRef.onValue.listen((DatabaseEvent event) {
+      final data = event.snapshot.value;
+      isGameOverData = data as Map<dynamic, dynamic>;
+      setState(() {});
+    });
+
+    starCountRef =
+        FirebaseDatabase.instance.ref('user/${widget.studentNumber}/bet/');
+    starCountRef.onValue.listen((DatabaseEvent event) {
+      final data = event.snapshot.value;
+      betData = data as Map<dynamic, dynamic>;
+      setState(() {});
+    });
+
+    starCountRef =
+        FirebaseDatabase.instance.ref('user/${widget.studentNumber}/point');
+    starCountRef.onValue.listen((DatabaseEvent event) {
+      widget.point = event.snapshot.value.toString();
+      setState(() {});
+    });
 
     _bettingPoint1Controller.addListener(() {
       if (_bettingPoint1Controller.text.isEmpty) {
@@ -892,6 +917,7 @@ class _BetScreenState extends State<BetScreen> {
                               _bettingPoint2Controller.text = "";
                               _bettingPoint3Controller.text = "";
                               isBetError = false;
+                              isGameOver = false;
                               isBetPointError = false;
                               Navigator.of(context).pop();
                             },
@@ -953,7 +979,7 @@ class _BetScreenState extends State<BetScreen> {
     required var game,
     required var player,
     required StateSetter setDialog,
-  }) async {
+  }) {
     if ((top1 == 0 && _bettingPoint1 == 0) &&
         (top2 == 0 && _bettingPoint2 == 0) &&
         (top3 == 0 && _bettingPoint3 == 0)) {
@@ -983,6 +1009,29 @@ class _BetScreenState extends State<BetScreen> {
       return;
     }
 
+    betDataSave(game: game, player: player, setDialog: setDialog);
+
+    top1 = 0;
+    top2 = 0;
+    top3 = 0;
+    topList = [];
+    _bettingPoint1 = 0;
+    _bettingPoint2 = 0;
+    _bettingPoint3 = 0;
+    _bettingPoint1Controller.text = "";
+    _bettingPoint2Controller.text = "";
+    _bettingPoint3Controller.text = "";
+    isBetError = false;
+    isBetPointError = false;
+
+    Navigator.pop(context);
+  }
+
+  void betDataSave({
+    required var game,
+    required var player,
+    required StateSetter setDialog,
+  }) async {
     var playerInner = {
       "$top1반": _bettingPoint1,
       "$top2반": _bettingPoint2,
@@ -999,52 +1048,7 @@ class _BetScreenState extends State<BetScreen> {
         int.parse(widget.point!) -
             _bettingPoint1 -
             _bettingPoint2 -
-            _bettingPoint3);
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.remove('point');
-
-    prefs.setString(
-        'point',
-        (int.parse(widget.point!) -
-                _bettingPoint1 -
-                _bettingPoint2 -
-                _bettingPoint3)
-            .toString());
-
-    print((int.parse(widget.point!) -
-            _bettingPoint1 -
-            _bettingPoint2 -
-            _bettingPoint3)
-        .toString());
-
-    top1 = 0;
-    top2 = 0;
-    top3 = 0;
-    topList = [];
-    _bettingPoint1 = 0;
-    _bettingPoint2 = 0;
-    _bettingPoint3 = 0;
-    _bettingPoint1Controller.text = "";
-    _bettingPoint2Controller.text = "";
-    _bettingPoint3Controller.text = "";
-    isBetError = false;
-    isBetPointError = false;
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (context) => BetScreen(
-          studentNumber: widget.studentNumber,
-          name: widget.name,
-          point: (int.parse(widget.point!) -
-                  _bettingPoint1 -
-                  _bettingPoint2 -
-                  _bettingPoint3)
-              .toString(),
-        ),
-      ),
-      (route) => false,
-    );
+            _bettingPoint3);  
   }
 
   Column showGames({
@@ -1064,15 +1068,29 @@ class _BetScreenState extends State<BetScreen> {
       isBet = false;
     }
 
+    try {
+      if (isGameOverData[game][player]['isOver'] == true) {
+        isGameOver = true;
+      } else {
+        isGameOver = false;
+      }
+    } catch (e) {
+      isGameOver = false;
+    }
+
+    setState(() {});
+
     return Column(
       children: [
         GestureDetector(
-          onTap: isBet
+          onTap: isGameOver
               ? () {}
-              : () => onBetModalTap(
-                    game: game,
-                    player: player,
-                  ),
+              : isBet
+                  ? () {}
+                  : () => onBetModalTap(
+                        game: game,
+                        player: player,
+                      ),
           child: FractionallySizedBox(
             widthFactor: 1,
             child: Container(
@@ -1124,15 +1142,21 @@ class _BetScreenState extends State<BetScreen> {
                             borderRadius: BorderRadius.circular(
                               Sizes.size5,
                             ),
-                            color: isBet
-                                ? Theme.of(context).primaryColor
-                                : Colors.grey,
+                            color: isGameOver
+                                ? Colors.black
+                                : isBet
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.grey,
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                isBet ? '베팅 완료' : "미참여",
+                                isGameOver
+                                    ? "게임 종료"
+                                    : isBet
+                                        ? '베팅 완료'
+                                        : "미참여",
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,

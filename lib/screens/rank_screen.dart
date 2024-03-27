@@ -103,7 +103,7 @@ class _RankScreenState extends State<RankScreen> {
 
   @override
   void initState() {
-    readPlayerData();
+    // readPlayerData();
     super.initState();
     getPoint();
     if (widget.studentNumber != null &&
@@ -111,6 +111,28 @@ class _RankScreenState extends State<RankScreen> {
         widget.point != null) {
       isLogined = true;
     }
+
+    DatabaseReference starCountRef = FirebaseDatabase.instance.ref('user/');
+    starCountRef.onValue.listen((DatabaseEvent event) {
+      final data = event.snapshot.value;
+      playerData = data as Map<dynamic, dynamic>;
+      playerList.clear();
+
+      for (var player in playerData.keys) {
+        playerList.add(player);
+      }
+
+      quickSort(playerList, playerData, 0, playerList.length - 1);
+      setState(() {});
+      print('playerList: $playerList');
+    });
+
+    starCountRef =
+        FirebaseDatabase.instance.ref('user/${widget.studentNumber}/point');
+    starCountRef.onValue.listen((DatabaseEvent event) {
+      widget.point = event.snapshot.value.toString();
+      setState(() {});
+    });
   }
 
   void onScaffoldTap() {
@@ -615,33 +637,12 @@ class _RankScreenState extends State<RankScreen> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              "${playerList[i]} ${playerData[playerList[i]]['name']}",
-                                              style: const TextStyle(
-                                                fontSize: Sizes.size16,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              width: MediaQuery.of(context)
-                                                      .size
-                                                      .width /
-                                                  4,
-                                            ),
-                                            Text(
-                                              '1위까지 ${100 - (100 * playerData[playerList[i]]['point'] / playerData[playerList[0]]['point']).floor()}%',
-                                              style: const TextStyle(
-                                                color: Color(
-                                                  0xff77BEFF,
-                                                ),
-                                                fontSize: Sizes.size12,
-                                                fontWeight: FontWeight.w600,
-                                                fontFamily: 'NanumSquare',
-                                              ),
-                                            ),
-                                          ],
+                                        Text(
+                                          "${playerList[i]} ${playerData[playerList[i]]['name']}",
+                                          style: const TextStyle(
+                                            fontSize: Sizes.size16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                         Gaps.v5,
                                         Container(
@@ -665,14 +666,29 @@ class _RankScreenState extends State<RankScreen> {
                                 ),
                                 Align(
                                   alignment: Alignment.centerRight,
-                                  child: Text(
-                                    "${playerData[playerList[i]]['point']}P",
-                                    style: const TextStyle(
-                                      color: Color(0xffFFB359),
-                                      fontWeight: FontWeight.w800,
-                                      fontFamily: 'NanumSquare',
-                                    ),
-                                    textAlign: TextAlign.right,
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        "${playerData[playerList[i]]['point']}P",
+                                        style: const TextStyle(
+                                          color: Color(0xffFFB359),
+                                          fontWeight: FontWeight.w800,
+                                          fontFamily: 'NanumSquare',
+                                        ),
+                                        textAlign: TextAlign.right,
+                                      ),
+                                      Text(
+                                        '1위까지 ${100 - (100 * playerData[playerList[i]]['point'] / playerData[playerList[0]]['point']).floor()}%',
+                                        style: const TextStyle(
+                                          color: Color(
+                                            0xff77BEFF,
+                                          ),
+                                          fontSize: Sizes.size12,
+                                          fontWeight: FontWeight.w600,
+                                          fontFamily: 'NanumSquare',
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],

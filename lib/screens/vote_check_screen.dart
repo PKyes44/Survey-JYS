@@ -71,6 +71,13 @@ class _VoteCheckScreenState extends State<VoteCheckScreen> {
         widget.point != null) {
       isLogined = true;
     }
+
+    DatabaseReference starCountRef =
+        FirebaseDatabase.instance.ref('user/${widget.studentNumber}/point');
+    starCountRef.onValue.listen((DatabaseEvent event) {
+      widget.point = event.snapshot.value.toString();
+      setState(() {});
+    });
   }
 
   void onScaffoldTap() {
