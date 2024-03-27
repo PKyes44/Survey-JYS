@@ -8,6 +8,7 @@ import 'package:survey_jys/authentication/sign_up_screen.dart';
 import 'package:survey_jys/constants/gaps.dart';
 import 'package:survey_jys/constants/sizes.dart';
 import 'package:survey_jys/screens/bet_screen.dart';
+import 'package:survey_jys/screens/history_screen.dart';
 import 'package:survey_jys/screens/rank_screen.dart';
 import 'package:survey_jys/screens/vote_check_screen.dart';
 import 'package:survey_jys/screens/vote_screen.dart';
@@ -33,10 +34,19 @@ class _LiveSituationState extends State<LiveSituation> {
 
   bool showUserDetails = false;
 
+  void getPoint() async {
+    final reference = FirebaseDatabase.instance.ref();
+
+    DataSnapshot snapshot =
+        await reference.child('user/${widget.studentNumber}/point').get();
+    widget.point = snapshot.value.toString();
+    setState(() {});
+  }
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
+    getPoint();
     reset();
     readVoteData();
 
@@ -50,6 +60,7 @@ class _LiveSituationState extends State<LiveSituation> {
   Map<int, int> dodgeBallData = {};
   Map<int, int> finalData = {};
   void reset() {
+    getPoint();
     dodgeBallData = {
       11: 0,
       12: 0,
@@ -221,6 +232,20 @@ class _LiveSituationState extends State<LiveSituation> {
     );
   }
 
+  void onBetHistoryTap() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => BetHistoryScreen(
+          studentNumber: widget.studentNumber,
+          name: widget.name,
+          point: widget.point,
+        ),
+      ),
+      (route) => false,
+    );
+  }
+
   void onBetTap() {
     Navigator.pushAndRemoveUntil(
       context,
@@ -323,7 +348,12 @@ class _LiveSituationState extends State<LiveSituation> {
           leading: const FaIcon(FontAwesomeIcons.checkToSlot),
           iconColor: Theme.of(context).primaryColor,
           focusColor: Theme.of(context).primaryColor,
-          title: const Text('BIG이벤트 투표하기'),
+          title: const Text(
+            'BIG이벤트 투표하기',
+            style: TextStyle(
+              fontFamily: 'NanumSquare',
+            ),
+          ),
           onTap: onVoteTap,
           trailing: const Icon(Icons.navigate_next),
         ),
@@ -331,7 +361,12 @@ class _LiveSituationState extends State<LiveSituation> {
           leading: const FaIcon(FontAwesomeIcons.listCheck),
           iconColor: Theme.of(context).primaryColor,
           focusColor: Theme.of(context).primaryColor,
-          title: const Text('BIG이벤트 투표 확인'),
+          title: const Text(
+            'BIG이벤트 투표 확인',
+            style: TextStyle(
+              fontFamily: 'NanumSquare',
+            ),
+          ),
           onTap: onVoteCheckTap,
           trailing: const Icon(Icons.navigate_next),
         ),
@@ -339,7 +374,12 @@ class _LiveSituationState extends State<LiveSituation> {
           leading: const FaIcon(FontAwesomeIcons.satellite),
           iconColor: Theme.of(context).primaryColor,
           focusColor: Theme.of(context).primaryColor,
-          title: const Text('BIG이벤트 투표 현황'),
+          title: const Text(
+            'BIG이벤트 투표 현황',
+            style: TextStyle(
+              fontFamily: 'NanumSquare',
+            ),
+          ),
           onTap: onLiveTap,
           trailing: const Icon(Icons.navigate_next),
         ),
@@ -354,9 +394,26 @@ class _LiveSituationState extends State<LiveSituation> {
             '세부종목 베팅하기',
             style: TextStyle(
               color: isLogined ? Colors.black : Colors.grey,
+              fontFamily: 'NanumSquare',
             ),
           ),
           onTap: isLogined ? onBetTap : onLockedTap,
+        ),
+        ListTile(
+          leading: const FaIcon(FontAwesomeIcons.folderOpen),
+          trailing: isLogined
+              ? const Icon(Icons.navigate_next)
+              : const FaIcon(FontAwesomeIcons.lock, size: Sizes.size20),
+          iconColor: isLogined ? Theme.of(context).primaryColor : Colors.grey,
+          focusColor: Theme.of(context).primaryColor,
+          title: Text(
+            '베팅 내역 보기',
+            style: TextStyle(
+              color: isLogined ? Colors.black : Colors.grey,
+              fontFamily: 'NanumSquare',
+            ),
+          ),
+          onTap: isLogined ? onBetHistoryTap : onLockedTap,
         ),
         ListTile(
           leading: const FaIcon(FontAwesomeIcons.rankingStar),
@@ -369,9 +426,10 @@ class _LiveSituationState extends State<LiveSituation> {
             '포인트 랭킹 현황',
             style: TextStyle(
               color: isLogined ? Colors.black : Colors.grey,
+              fontFamily: 'NanumSquare',
             ),
           ),
-          onTap: isLogined ? onBetTap : onLockedTap,
+          onTap: isLogined ? onRankTap : onLockedTap,
         ),
       ],
     );
@@ -408,11 +466,13 @@ class _LiveSituationState extends State<LiveSituation> {
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(
+            backgroundColor: const Color(0xffFF5959),
             title: const Text(
-              "장영실고등학교 체육대회 승자예측",
+              "BIG 이벤트 반별 투표 현황",
               style: TextStyle(
                 fontSize: Sizes.size20,
                 fontWeight: FontWeight.w500,
+                fontFamily: 'JalnanGothic',
               ),
             ),
             centerTitle: true,
@@ -467,7 +527,7 @@ class _LiveSituationState extends State<LiveSituation> {
                   Container(
                     height: 1.0,
                     width: double.infinity,
-                    color: Theme.of(context).primaryColor,
+                    color: const Color(0xffFF5959),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -482,13 +542,6 @@ class _LiveSituationState extends State<LiveSituation> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  "반별 투표 현황",
-                                  style: TextStyle(
-                                    fontSize: Sizes.size20,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
                                 DataTable(
                                   columns: const [
                                     DataColumn(
