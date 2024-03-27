@@ -67,10 +67,30 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  fonts:
+   - family: JalnanGothic
+     fonts:
+        - asset: assets/fonts/JalnanGothicTTF.ttf
+   - family: NanumSquare
+     fonts:
+        - asset: assets/fonts/NanumSquare/NanumSquareNeo-aLt.ttf
+          weight: 200
+        - asset: assets/fonts/NanumSquare/NanumSquareNeo-bRg.ttf
+          weight: 300
+        - asset: assets/fonts/NanumSquare/NanumSquareNeo-cBd.ttf
+          weight: 400
+        - asset: assets/fonts/NanumSquare/NanumSquareNeo-dEb.ttf
+          weight: 500
+        - asset: assets/fonts/NanumSquare/NanumSquareNeo-eHv.ttf
+          weight: 600
+
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/JYS-Survey_logo.png
     - assets/images/profile.png
+    - assets/images/1stMedal.png
+    - assets/images/2ndMedal.png  
+    - assets/images/3rdMedal.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

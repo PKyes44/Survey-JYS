@@ -46,15 +46,13 @@ class _SplashScreenState extends State<SplashScreen> {
       splashTransition: SplashTransition.fadeTransition,
       backgroundColor: Colors.white,
       splashIconSize: Sizes.size36 * 5,
-      nextScreen: 
-      // isToken
-      //     ? MakeQuestionScreen(
-      //         studentNumber: studentNumber,
-      //         name: name,
-      //         point: point,
-      //       )
-          // : 
-          const LoginScreen(),
+      nextScreen: isToken
+          ? MakeQuestionScreen(
+              studentNumber: studentNumber,
+              name: name,
+              point: point,
+            )
+          : const LoginScreen(),
     );
   }
 }
