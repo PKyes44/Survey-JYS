@@ -1163,6 +1163,7 @@ class _BetScreenState extends State<BetScreen> {
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(
+            backgroundColor: const Color(0xffFF5959),
             title: const Text(
               "세부종목 베팅",
               style: TextStyle(
@@ -1222,11 +1223,6 @@ class _BetScreenState extends State<BetScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  Container(
-                    height: 1.0,
-                    width: double.infinity,
-                    color: Theme.of(context).primaryColor,
-                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: Sizes.size20,

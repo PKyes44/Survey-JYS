@@ -763,6 +763,7 @@ class _BetHistoryScreenState extends State<BetHistoryScreen> {
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(
+            backgroundColor: const Color(0xffFF5959),
             title: const Text(
               "내 베팅 내역 확인",
               style: TextStyle(
@@ -822,11 +823,6 @@ class _BetHistoryScreenState extends State<BetHistoryScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  Container(
-                    height: 1.0,
-                    width: double.infinity,
-                    color: Theme.of(context).primaryColor,
-                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: Sizes.size20,

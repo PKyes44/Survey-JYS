@@ -415,6 +415,7 @@ class _RankScreenState extends State<RankScreen> {
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(
+            backgroundColor: const Color(0xffFF5959),
             title: const Text(
               "포인트 랭킹",
               style: TextStyle(
@@ -472,29 +473,33 @@ class _RankScreenState extends State<RankScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  Container(
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                    ),
-                  ),
                   SizedBox(
-                    height: MediaQuery.of(context).size.height / 3.5,
+                    height: MediaQuery.of(context).size.height / 4,
                     width: MediaQuery.of(context).size.width,
                     child: Column(
                       children: [
                         Gaps.v16,
-                        const Text(
-                          "전교생 TOP 3",
-                          style: TextStyle(
-                            fontSize: Sizes.size20,
-                            fontWeight: FontWeight.w500,
+                        const Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10.0,
+                          ),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "전교생 TOP 3",
+                              style: TextStyle(
+                                fontSize: Sizes.size16,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'NanumSquare',
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
                           ),
                         ),
                         Gaps.v12,
                         Padding(
                           padding: const EdgeInsets.only(
-                            top: 15,
+                            top: 5,
                           ),
                           child: Row(
                             children: [
@@ -505,16 +510,21 @@ class _RankScreenState extends State<RankScreen> {
                       ],
                     ),
                   ),
+                  // 1212 : 100 = 1000 : ?
+                  // 1212 * ? = 1000 * 100
+                  // 100000 = 1212?
                   Container(
-                    height: 5,
+                    height: 2,
                     decoration: BoxDecoration(
                       color: Colors.grey.shade200,
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 15,
-                      horizontal: 15,
+                    padding: const EdgeInsets.only(
+                      top: 15,
+                      bottom: 15,
+                      left: 15,
+                      right: 15,
                     ),
                     child: Column(
                       children: [
@@ -565,7 +575,7 @@ class _RankScreenState extends State<RankScreen> {
                     ),
                   ),
                   Container(
-                    height: 5,
+                    height: 1,
                     decoration: BoxDecoration(
                       color: Colors.grey.shade200,
                     ),
@@ -586,27 +596,70 @@ class _RankScreenState extends State<RankScreen> {
                                 width: Sizes.size1,
                               ),
                             ),
-                            child: Stack(
-                              alignment: Alignment.center,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    "${i + 1}위",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ),
-                                Column(
+                                Row(
                                   children: [
-                                    Text(
-                                      "${playerList[i]} ${playerData[playerList[i]]['name']}",
-                                      style: const TextStyle(
-                                        fontSize: Sizes.size16,
-                                        fontWeight: FontWeight.w600,
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        "${i + 1}위",
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w400,
+                                        ),
                                       ),
-                                      textAlign: TextAlign.center,
+                                    ),
+                                    Gaps.h14,
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(
+                                              "${playerList[i]} ${playerData[playerList[i]]['name']}",
+                                              style: const TextStyle(
+                                                fontSize: Sizes.size16,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width /
+                                                  4,
+                                            ),
+                                            Text(
+                                              '1위까지 ${100 - (100 * playerData[playerList[i]]['point'] / playerData[playerList[0]]['point']).floor()}%',
+                                              style: const TextStyle(
+                                                color: Color(
+                                                  0xff77BEFF,
+                                                ),
+                                                fontSize: Sizes.size12,
+                                                fontWeight: FontWeight.w600,
+                                                fontFamily: 'NanumSquare',
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Gaps.v5,
+                                        Container(
+                                          width: (MediaQuery.of(context)
+                                                      .size
+                                                      .width /
+                                                  1.5) *
+                                              playerData[playerList[i]]
+                                                  ['point'] /
+                                              playerData[playerList[0]]
+                                                  ['point'],
+                                          height: 10,
+                                          decoration: BoxDecoration(
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -616,8 +669,10 @@ class _RankScreenState extends State<RankScreen> {
                                     "${playerData[playerList[i]]['point']}P",
                                     style: const TextStyle(
                                       color: Color(0xffFFB359),
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: FontWeight.w800,
+                                      fontFamily: 'NanumSquare',
                                     ),
+                                    textAlign: TextAlign.right,
                                   ),
                                 ),
                               ],

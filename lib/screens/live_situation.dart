@@ -466,6 +466,7 @@ class _LiveSituationState extends State<LiveSituation> {
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(
+            backgroundColor: const Color(0xffFF5959),
             title: const Text(
               "BIG 이벤트 반별 투표 현황",
               style: TextStyle(
@@ -526,7 +527,7 @@ class _LiveSituationState extends State<LiveSituation> {
                   Container(
                     height: 1.0,
                     width: double.infinity,
-                    color: Theme.of(context).primaryColor,
+                    color: const Color(0xffFF5959),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(

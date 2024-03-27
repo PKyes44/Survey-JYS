@@ -480,6 +480,7 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(
+            backgroundColor: const Color(0xffFF5959),
             title: const Text(
               "BIG이벤트 투표",
               style: TextStyle(
@@ -552,11 +553,6 @@ class _MakeQuestionScreenState extends State<MakeQuestionScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  Container(
-                    height: 1.0,
-                    width: double.infinity,
-                    color: Theme.of(context).primaryColor,
-                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: Sizes.size20,
